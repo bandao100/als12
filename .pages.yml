@@ -1,0 +1,213 @@
+# Configuration de l'espace d'administration Pages CMS (https://app.pagescms.org).
+# Chaque entrée ci-dessous devient une page de formulaire dans l'administration.
+
+media:
+  input: assets/uploads
+  output: /assets/uploads
+  categories: [image]
+  rename: safe
+
+settings:
+  content:
+    merge: true
+  commit:
+    identity: user
+
+content:
+  - name: entreprise
+    label: Coordonnées de l'entreprise
+    type: file
+    path: _data/entreprise.yml
+    fields:
+      - { name: nom, label: Nom de l'entreprise, type: string, required: true }
+      - { name: activite, label: Activité (sous le nom), type: string }
+      - name: description_seo
+        label: Description pour Google
+        type: text
+        description: Une ou deux phrases affichées dans les résultats de recherche.
+        options: { maxlength: 300 }
+      - { name: email, label: E-mail de contact, type: string, required: true, description: "Les demandes du formulaire sont envoyées à cette adresse." }
+      - { name: telephone, label: Téléphone, type: string, description: "Laissez vide pour ne pas l'afficher." }
+      - name: whatsapp
+        label: Numéro WhatsApp
+        type: string
+        description: "Avec l'indicatif du pays, par exemple +226 70 00 00 00. Rempli, il ajoute un bouton WhatsApp sur le site. Laissez vide pour le masquer."
+      - { name: adresse, label: Adresse, type: string }
+      - { name: horaires, label: Horaires d'ouverture, type: string, description: "Laissez vide pour ne pas les afficher." }
+      - name: reseaux
+        label: Réseaux sociaux
+        type: object
+        description: "Adresse complète de chaque page (https://…). Laissez vide pour masquer."
+        fields:
+          - { name: facebook, label: Facebook, type: string }
+          - { name: linkedin, label: LinkedIn, type: string }
+          - { name: instagram, label: Instagram, type: string }
+
+  - name: accueil
+    label: Accueil
+    type: file
+    path: _data/accueil.yml
+    fields:
+      - { name: surtitre, label: Petite mention au-dessus du titre, type: string }
+      - { name: titre_debut, label: "Titre, première ligne", type: string, required: true }
+      - { name: titre_liaison, label: "Titre, mot de liaison", type: string, description: "Suivi des accroches des services, qui défilent." }
+      - { name: titre_fin, label: "Titre, fin affichée au départ", type: string, options: { maxlength: 18 } }
+      - { name: introduction, label: Texte d'introduction, type: text, options: { maxlength: 320 } }
+      - { name: bouton_principal, label: Bouton principal, type: string }
+      - { name: bouton_secondaire, label: "Bouton secondaire (devis)", type: string }
+      - name: engagements
+        label: Engagements
+        type: object
+        list: { max: 3, collapsible: { collapsed: true, summary: "{titre}" } }
+        fields:
+          - { name: titre, label: Titre, type: string }
+          - { name: texte, label: Texte, type: text }
+          - name: icone
+            label: Icône
+            type: select
+            options:
+              values:
+                - { name: personne, label: Personne }
+                - { name: document, label: Document }
+                - { name: valide, label: Coche }
+                - { name: horloge, label: Horloge }
+                - { name: message, label: Message }
+
+  - name: services
+    label: Services
+    type: file
+    path: _data/services.yml
+    list: true
+    fields:
+      - name: id
+        label: Identifiant
+        type: string
+        required: true
+        description: "Court, sans espace ni accent (ex. : btp). Sert aux liens internes."
+        pattern: { regex: "^[a-z0-9-]+$", message: "Lettres minuscules, chiffres et tirets uniquement." }
+      - { name: titre, label: Nom du service, type: string, required: true }
+      - name: famille
+        label: Famille
+        type: select
+        options:
+          values:
+            - { name: conseil, label: Services et conseil (bleu) }
+            - { name: tech, label: Travaux et équipements (vert) }
+      - name: icone
+        label: Icône
+        type: select
+        options:
+          values:
+            - { name: traduction, label: Traduction }
+            - { name: juridique, label: Balance (juridique) }
+            - { name: finance, label: Pièces (finance) }
+            - { name: btp, label: Bâtiment et grue }
+            - { name: materiel, label: Colis (matériel) }
+            - { name: reseaux, label: Antenne (réseaux) }
+            - { name: autre, label: Mallette (autre) }
+      - { name: libelle_schema, label: Nom court dans le schéma de l'accueil, type: string, options: { maxlength: 18 } }
+      - { name: accroche, label: "Accroche du titre (ex. : vos chantiers.)", type: string, options: { maxlength: 18 } }
+      - { name: description, label: Description, type: text, options: { maxlength: 240 } }
+      - { name: prestations, label: Prestations, type: string, list: true }
+
+  - name: realisations
+    label: Réalisations (photos)
+    type: file
+    path: _data/realisations.yml
+    list: true
+    fields:
+      - { name: titre, label: Titre du projet, type: string, required: true }
+      - { name: image, label: Photo, type: image }
+      - { name: service, label: Service concerné, type: string }
+      - { name: lieu, label: Lieu, type: string }
+      - { name: description, label: Description, type: text, options: { maxlength: 240 } }
+
+  - name: methode
+    label: Méthode
+    type: file
+    path: _data/methode.yml
+    fields:
+      - { name: surtitre, label: Surtitre, type: string }
+      - { name: titre, label: Titre, type: string }
+      - { name: introduction, label: Introduction, type: text }
+      - name: etapes
+        label: Étapes
+        type: object
+        list: { min: 2, max: 6, collapsible: { collapsed: true, summary: "{index}. {titre}" } }
+        fields:
+          - { name: titre, label: Titre, type: string }
+          - { name: texte, label: Texte, type: text }
+
+  - name: clients
+    label: Clients
+    type: file
+    path: _data/clients.yml
+    fields:
+      - { name: surtitre, label: Surtitre, type: string }
+      - { name: titre, label: Titre, type: string }
+      - name: liste
+        label: Types de clients
+        type: object
+        list: { collapsible: { collapsed: true, summary: "{titre}" } }
+        fields:
+          - { name: titre, label: Titre, type: string }
+          - { name: texte, label: Texte, type: text }
+
+  - name: apropos
+    label: À propos
+    type: file
+    path: _data/apropos.yml
+    fields:
+      - { name: surtitre, label: Surtitre, type: string }
+      - { name: titre, label: Titre, type: string }
+      - { name: paragraphes, label: Paragraphes, type: text, list: true }
+      - name: valeurs
+        label: Valeurs
+        type: object
+        list: { collapsible: { collapsed: true, summary: "{titre}" } }
+        fields:
+          - { name: titre, label: Valeur, type: string }
+          - { name: texte, label: Texte, type: text }
+      - { name: exemple_titre, label: Titre de l'exemple de projet, type: string }
+      - name: exemple_etapes
+        label: Étapes de l'exemple
+        type: object
+        list: { collapsible: { collapsed: true, summary: "{tache}" } }
+        fields:
+          - { name: tache, label: Tâche, type: string }
+          - { name: service, label: Service, type: string }
+
+  - name: faq
+    label: Questions fréquentes
+    type: file
+    path: _data/faq.yml
+    fields:
+      - { name: surtitre, label: Surtitre, type: string }
+      - { name: titre, label: Titre, type: string }
+      - name: questions
+        label: Questions
+        type: object
+        list: { collapsible: { collapsed: true, summary: "{question}" } }
+        fields:
+          - { name: question, label: Question, type: string }
+          - { name: reponse, label: Réponse, type: text }
+
+  - name: textes
+    label: Autres textes du site
+    type: file
+    path: _data/textes.yml
+    fields:
+      - { name: services_surtitre, label: "Services : surtitre", type: string }
+      - { name: services_titre, label: "Services : titre", type: string }
+      - { name: services_intro, label: "Services : introduction", type: text }
+      - { name: famille_conseil, label: "Nom de la famille bleue", type: string }
+      - { name: famille_tech, label: "Nom de la famille verte", type: string }
+      - { name: realisations_surtitre, label: "Réalisations : surtitre", type: string }
+      - { name: realisations_titre, label: "Réalisations : titre", type: string }
+      - { name: appel_titre, label: "Bandeau d'appel : titre", type: string }
+      - { name: appel_texte, label: "Bandeau d'appel : texte", type: text }
+      - { name: appel_bouton, label: "Bandeau d'appel : bouton", type: string }
+      - { name: contact_surtitre, label: "Contact : surtitre", type: string }
+      - { name: contact_titre, label: "Contact : titre", type: string }
+      - { name: contact_texte, label: "Contact : texte", type: text }
+      - { name: pied_de_page, label: Phrase du pied de page, type: string }

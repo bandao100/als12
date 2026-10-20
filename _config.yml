@@ -1,0 +1,9 @@
+# Configuration du site (Jekyll, utilisé automatiquement par GitHub Pages).
+# Le contenu se modifie dans le dossier _data, de préférence avec Pages CMS (voir README.md).
+title: "ASK'N CO"
+lang: fr
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor

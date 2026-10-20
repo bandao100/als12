@@ -1,0 +1,11 @@
+surtitre: "Questions fréquentes"
+titre: "Vos questions, nos réponses"
+questions:
+  - question: "Comment obtenir un devis ?"
+    reponse: "Remplissez le formulaire de contact ou appelez-nous. Nous étudions votre besoin puis vous envoyons une proposition détaillée avec les prestations, les délais et le coût."
+  - question: "Puis-je confier plusieurs services dans un même projet ?"
+    reponse: "Oui. C'est tout l'intérêt d'une entreprise multiservice : un seul interlocuteur coordonne l'ensemble des métiers nécessaires à votre projet."
+  - question: "Travaillez-vous avec les particuliers ?"
+    reponse: "Oui. Nous accompagnons les particuliers comme les entreprises, les administrations et les organisations."
+  - question: "Quels sont vos délais ?"
+    reponse: "Ils dépendent de la nature et de l'ampleur du projet. Le devis précise toujours un calendrier de réalisation."
