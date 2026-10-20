@@ -75,6 +75,7 @@ export function themeColors() {
     scopeRing: v('--scope-ring'),
     scopeText: v('--scope-text'),
     scopeSweep: v('--scope-sweep'),
+    scopeInk: v('--scope-ink'),
     mono: v('--font-mono'),
     display: v('--font-display'),
   };

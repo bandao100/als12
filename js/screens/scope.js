@@ -219,7 +219,8 @@ export function createScope(canvas, getState) {
       }
     }
     const s = Math.max(9, R * 0.05);
-    ctx.fillStyle = st.pos ? c.fg : c.scopeText;
+    // L'écran radar reste sombre dans les deux thèmes : couleur dédiée, pas celle du texte.
+    ctx.fillStyle = st.pos ? c.scopeInk : c.scopeText;
     ctx.strokeStyle = c.scopeBg;
     ctx.lineWidth = 2;
     ctx.beginPath();
