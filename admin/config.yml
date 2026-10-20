@@ -1,0 +1,238 @@
+# Configuration de l'espace d'administration (Sveltia CMS), ouvert à l'adresse du site suivie de /admin/.
+# L'interface s'affiche en français quand le navigateur est réglé en français.
+
+backend:
+  name: github
+  repo: bandao100/als12
+  branch: master
+  auth_methods: [token]
+  commit_messages:
+    create: "Ajoute {{path}} depuis l'administration"
+    update: "Modifie {{path}} depuis l'administration"
+    delete: "Supprime {{path}} depuis l'administration"
+    uploadMedia: "Ajoute l'image {{path}} depuis l'administration"
+    deleteMedia: "Supprime l'image {{path}} depuis l'administration"
+
+site_url: https://bandao100.github.io/als12/
+logo:
+  src: ../assets/img/favicon.png
+
+media_folder: assets/uploads
+public_folder: /assets/uploads
+
+collections:
+  - name: site
+    label: Contenu du site
+    description: Chaque fiche correspond à une partie du site. Enregistrez, puis patientez une à deux minutes avant de voir la modification en ligne.
+    editor:
+      preview: false
+    files:
+      - name: entreprise
+        label: Coordonnées de l'entreprise
+        file: _data/entreprise.yml
+        fields:
+          - { name: nom, label: Nom de l'entreprise, widget: string }
+          - { name: activite, label: Activité (sous le nom), widget: string, required: false }
+          - name: description_seo
+            label: Description pour Google
+            widget: text
+            required: false
+            hint: Une ou deux phrases affichées dans les résultats de recherche.
+          - { name: email, label: E-mail de contact, widget: string, hint: Les demandes du formulaire sont envoyées à cette adresse. }
+          - { name: telephone, label: Téléphone, widget: string, required: false, hint: Laissez vide pour ne pas l'afficher. }
+          - name: whatsapp
+            label: Numéro WhatsApp
+            widget: string
+            required: false
+            hint: "Avec l'indicatif du pays, par exemple +226 70 00 00 00. Rempli, il ajoute des boutons WhatsApp sur le site. Laissez vide pour les masquer."
+          - { name: adresse, label: Adresse, widget: string, required: false }
+          - { name: horaires, label: Horaires d'ouverture, widget: string, required: false, hint: Laissez vide pour ne pas les afficher. }
+          - name: reseaux
+            label: Réseaux sociaux
+            widget: object
+            required: false
+            hint: Adresse complète de chaque page (https://…). Laissez vide pour masquer.
+            fields:
+              - { name: facebook, label: Facebook, widget: string, required: false }
+              - { name: linkedin, label: LinkedIn, widget: string, required: false }
+              - { name: instagram, label: Instagram, widget: string, required: false }
+
+      - name: accueil
+        label: Accueil
+        file: _data/accueil.yml
+        fields:
+          - { name: surtitre, label: Petite mention au-dessus du titre, widget: string, required: false }
+          - { name: titre_debut, label: "Titre, première ligne", widget: string }
+          - { name: titre_liaison, label: "Titre, mot de liaison", widget: string, hint: "Suivi des accroches des services, qui défilent." }
+          - { name: titre_fin, label: "Titre, fin affichée au départ", widget: string, maxlength: 18 }
+          - { name: introduction, label: Texte d'introduction, widget: text }
+          - { name: bouton_principal, label: Bouton principal, widget: string }
+          - { name: bouton_secondaire, label: "Bouton secondaire (devis)", widget: string }
+          - name: engagements
+            label: Engagements
+            label_singular: engagement
+            widget: list
+            max: 3
+            summary: "{{fields.titre}}"
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
+              - name: icone
+                label: Icône
+                widget: select
+                options:
+                  - { label: Personne, value: personne }
+                  - { label: Document, value: document }
+                  - { label: Coche, value: valide }
+                  - { label: Horloge, value: horloge }
+                  - { label: Message, value: message }
+
+      - name: services
+        label: Services
+        file: _data/services.yml
+        fields:
+          - name: services
+            label: Services
+            label_singular: service
+            widget: list
+            root: true
+            summary: "{{fields.titre}}"
+            fields:
+              - name: id
+                label: Identifiant
+                widget: string
+                hint: "Court, sans espace ni accent (ex. : btp). Sert aux liens internes."
+                pattern: ["^[a-z0-9-]+$", "Lettres minuscules, chiffres et tirets uniquement."]
+              - { name: titre, label: Nom du service, widget: string }
+              - name: famille
+                label: Famille
+                widget: select
+                options:
+                  - { label: Services et conseil (bleu), value: conseil }
+                  - { label: Travaux et équipements (vert), value: tech }
+              - name: icone
+                label: Icône
+                widget: select
+                options:
+                  - { label: Traduction, value: traduction }
+                  - { label: Balance (juridique), value: juridique }
+                  - { label: Pièces (finance), value: finance }
+                  - { label: Bâtiment et grue, value: btp }
+                  - { label: Colis (matériel), value: materiel }
+                  - { label: Antenne (réseaux), value: reseaux }
+                  - { label: Mallette (autre), value: autre }
+              - { name: libelle_schema, label: Nom court dans le schéma de l'accueil, widget: string, maxlength: 18 }
+              - { name: accroche, label: "Accroche du titre (ex. : vos chantiers.)", widget: string, maxlength: 18 }
+              - { name: description, label: Description, widget: text }
+              - { name: prestations, label: Prestations, label_singular: prestation, widget: list, field: { name: prestation, label: Prestation, widget: string } }
+
+      - name: realisations
+        label: Réalisations (photos)
+        file: _data/realisations.yml
+        fields:
+          - name: realisations
+            label: Réalisations
+            label_singular: réalisation
+            widget: list
+            root: true
+            summary: "{{fields.titre}}"
+            hint: La section Réalisations apparaît sur le site dès le premier projet ajouté.
+            fields:
+              - { name: titre, label: Titre du projet, widget: string }
+              - { name: image, label: Photo, widget: image, required: false }
+              - { name: service, label: Service concerné, widget: string, required: false }
+              - { name: lieu, label: Lieu, widget: string, required: false }
+              - { name: description, label: Description, widget: text, required: false }
+
+      - name: methode
+        label: Méthode
+        file: _data/methode.yml
+        fields:
+          - { name: surtitre, label: Surtitre, widget: string, required: false }
+          - { name: titre, label: Titre, widget: string }
+          - { name: introduction, label: Introduction, widget: text, required: false }
+          - name: etapes
+            label: Étapes
+            label_singular: étape
+            widget: list
+            min: 2
+            max: 6
+            summary: "{{fields.titre}}"
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
+
+      - name: clients
+        label: Clients
+        file: _data/clients.yml
+        fields:
+          - { name: surtitre, label: Surtitre, widget: string, required: false }
+          - { name: titre, label: Titre, widget: string }
+          - name: liste
+            label: Types de clients
+            label_singular: type de client
+            widget: list
+            summary: "{{fields.titre}}"
+            fields:
+              - { name: titre, label: Titre, widget: string }
+              - { name: texte, label: Texte, widget: text }
+
+      - name: apropos
+        label: À propos
+        file: _data/apropos.yml
+        fields:
+          - { name: surtitre, label: Surtitre, widget: string, required: false }
+          - { name: titre, label: Titre, widget: string }
+          - { name: paragraphes, label: Paragraphes, label_singular: paragraphe, widget: list, field: { name: paragraphe, label: Paragraphe, widget: text } }
+          - name: valeurs
+            label: Valeurs
+            label_singular: valeur
+            widget: list
+            summary: "{{fields.titre}}"
+            fields:
+              - { name: titre, label: Valeur, widget: string }
+              - { name: texte, label: Texte, widget: text }
+          - { name: exemple_titre, label: Titre de l'exemple de projet, widget: string, required: false }
+          - name: exemple_etapes
+            label: Étapes de l'exemple
+            label_singular: étape
+            widget: list
+            required: false
+            summary: "{{fields.tache}}"
+            fields:
+              - { name: tache, label: Tâche, widget: string }
+              - { name: service, label: Service, widget: string }
+
+      - name: faq
+        label: Questions fréquentes
+        file: _data/faq.yml
+        fields:
+          - { name: surtitre, label: Surtitre, widget: string, required: false }
+          - { name: titre, label: Titre, widget: string }
+          - name: questions
+            label: Questions
+            label_singular: question
+            widget: list
+            summary: "{{fields.question}}"
+            fields:
+              - { name: question, label: Question, widget: string }
+              - { name: reponse, label: Réponse, widget: text }
+
+      - name: textes
+        label: Autres textes du site
+        file: _data/textes.yml
+        fields:
+          - { name: services_surtitre, label: "Services : surtitre", widget: string }
+          - { name: services_titre, label: "Services : titre", widget: string }
+          - { name: services_intro, label: "Services : introduction", widget: text }
+          - { name: famille_conseil, label: Nom de la famille bleue, widget: string }
+          - { name: famille_tech, label: Nom de la famille verte, widget: string }
+          - { name: realisations_surtitre, label: "Réalisations : surtitre", widget: string }
+          - { name: realisations_titre, label: "Réalisations : titre", widget: string }
+          - { name: appel_titre, label: "Bandeau d'appel : titre", widget: string }
+          - { name: appel_texte, label: "Bandeau d'appel : texte", widget: text }
+          - { name: appel_bouton, label: "Bandeau d'appel : bouton", widget: string }
+          - { name: contact_surtitre, label: "Contact : surtitre", widget: string }
+          - { name: contact_titre, label: "Contact : titre", widget: string }
+          - { name: contact_texte, label: "Contact : texte", widget: text }
+          - { name: pied_de_page, label: Phrase du pied de page, widget: string }

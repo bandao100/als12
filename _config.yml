@@ -1,5 +1,5 @@
 # Configuration du site (Jekyll, utilisé automatiquement par GitHub Pages).
-# Le contenu se modifie dans le dossier _data, de préférence avec Pages CMS (voir README.md).
+# Le contenu se modifie dans le dossier _data, depuis l'administration en français à l'adresse /admin/ (voir README.md).
 title: "ASK'N CO"
 lang: fr
 exclude:
