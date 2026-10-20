@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Surveillance réseau</string>
+
+    <string name="status_on">Surveillance active</string>
+    <string name="status_off">Surveillance arrêtée</string>
+    <string name="start">Démarrer la surveillance</string>
+    <string name="stop">Arrêter la surveillance</string>
+    <string name="hint_tap">Touchez un appareil pour le marquer comme connu ou à vérifier.</string>
+    <string name="empty_devices">Aucun appareil détecté pour l\'instant. Connectez le téléphone au Wi-Fi, puis démarrez la surveillance.</string>
+
+    <string name="badge_unknown">À vérifier</string>
+    <string name="badge_trusted">Connu</string>
+    <string name="device_subtitle">%1$s · vu à %2$s</string>
+
+    <string name="service_title">Surveillance réseau</string>
+    <string name="service_text">Analyse du Wi-Fi local toutes les 5 minutes</string>
+    <string name="channel_service">Surveillance en cours</string>
+    <string name="channel_alerts">Nouveaux appareils</string>
+
+    <plurals name="alert_title">
+        <item quantity="one">%d nouvel appareil détecté</item>
+        <item quantity="other">%d nouveaux appareils détectés</item>
+    </plurals>
+</resources>
