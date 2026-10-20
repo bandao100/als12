@@ -1,7 +1,8 @@
-# Colombe 3 — Suivi budgétaire (application Android)
+# Aurore — suivi budgétaire de chantier (application Android)
 
-Application Android hors ligne qui remplace le classeur Excel « Colombe3_Suivi_Design » pour le
-suivi budgétaire d'un chantier : budget par poste et par lot, paiements, restes à payer.
+**Aurore** est une application Android hors ligne qui remplace le classeur Excel
+« Colombe3_Suivi_Design » pour le suivi budgétaire du chantier Colombe 3 : budget par poste et
+par lot, paiements, restes à payer.
 
 ## Fonctionnalités
 
@@ -24,7 +25,7 @@ Les données sont enregistrées uniquement sur le téléphone (aucune connexion 
 
 ## Installer l'APK
 
-1. Copier `Colombe3-Suivi.apk` sur le téléphone (WhatsApp, Drive, câble USB…).
+1. Copier `Aurore.apk` sur le téléphone (WhatsApp, Drive, câble USB…).
 2. L'ouvrir et autoriser l'installation d'applications provenant de cette source si Android le demande.
 3. Android 7.0 ou plus récent.
 
@@ -32,7 +33,8 @@ Les données sont enregistrées uniquement sur le téléphone (aucune connexion 
 Une désinstallation efface les données du téléphone ; la sauvegarde permet de tout restaurer.
 
 **Mises à jour** : une nouvelle version s'installe par-dessus l'ancienne, sans perte de données,
-à condition d'être signée avec la même clé (`colombe3.keystore`, conservée hors de ce dépôt).
+à condition d'être signée avec la même clé (`colombe3.keystore`, conservée hors de ce dépôt) et de
+garder l'identifiant `com.colombe3.suivi`.
 
 ## Recompiler l'APK
 
@@ -42,7 +44,7 @@ Aucun Android Studio ni SDK Android n'est nécessaire : il faut Java 17+, Python
 ```bash
 # Placer la clé de signature dans android/colombe3.keystore (sinon une nouvelle clé est créée)
 scripts/construire_apk.sh chemin/vers/Colombe3_Suivi_Design.xlsx
-# -> build/Colombe3-Suivi.apk
+# -> build/Aurore.apk
 ```
 
 Le script convertit le classeur en données initiales (`web/donnees-initiales.js`), télécharge

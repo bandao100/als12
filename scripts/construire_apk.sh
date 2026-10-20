@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Construit l'APK « Colombe 3 » sans Android Studio ni SDK Android installé.
+# Construit l'APK « Aurore » sans Android Studio ni SDK Android installé.
 #
-# Usage : scripts/construire_apk.sh [classeur.xlsx]   -> build/Colombe3-Suivi.apk
+# Usage : scripts/construire_apk.sh [classeur.xlsx]   -> build/Aurore.apk
 #
 # Avec un classeur Excel, ses données (postes, paiements) sont d'abord converties dans
 # web/donnees-initiales.js et embarquées dans l'APK. Sans argument, le fichier
@@ -9,19 +9,20 @@
 #
 # Prérequis : Java 17+, Python 3, curl, unzip.
 # Les outils (aapt2, d8, apksigner, bibliothèque Android 15) sont téléchargés une fois
-# dans $OUTILS (par défaut ~/.cache/colombe3-outils) et vérifiés par empreinte SHA-256.
+# dans $OUTILS (par défaut ~/.cache/aurore-outils) et vérifiés par empreinte SHA-256.
 set -euo pipefail
 
 RACINE="$(cd "$(dirname "$0")/.." && pwd)"
-OUTILS="${OUTILS:-$HOME/.cache/colombe3-outils}"
+OUTILS="${OUTILS:-$HOME/.cache/aurore-outils}"
 BUILD="$RACINE/build"
-VERSION_CODE="${VERSION_CODE:-1}"
-VERSION_NOM="${VERSION_NOM:-1.0}"
+VERSION_CODE="${VERSION_CODE:-2}"
+VERSION_NOM="${VERSION_NOM:-1.1}"
 MIN_SDK=24
 CIBLE_SDK=35
 
 # Clé de signature : la même à chaque version, pour pouvoir mettre l'application à jour
-# sans la désinstaller (et donc sans perdre les données saisies).
+# sans la désinstaller (et donc sans perdre les données saisies). Le nom du fichier date
+# de la version 1.0 et reste inchangé.
 KEYSTORE="${KEYSTORE:-$RACINE/android/colombe3.keystore}"
 KEYSTORE_MDP="${KEYSTORE_MDP:-colombe3-suivi}"
 KEY_ALIAS="${KEY_ALIAS:-colombe3}"
@@ -64,7 +65,7 @@ if [ ! -f "$KEYSTORE" ]; then
   echo "Création de la clé de signature $KEYSTORE"
   keytool -genkeypair -keystore "$KEYSTORE" -storetype PKCS12 -alias "$KEY_ALIAS" \
     -storepass "$KEYSTORE_MDP" -keypass "$KEYSTORE_MDP" -keyalg RSA -keysize 2048 -validity 10000 \
-    -dname "CN=Colombe 3 Suivi, O=Colombe 3, C=CI"
+    -dname "CN=Aurore, O=Aurore, C=CI"
 fi
 
 rm -rf "$BUILD"
@@ -97,8 +98,8 @@ echo "5/5 Assemblage, alignement et signature"
 python3 "$RACINE/scripts/aligner_apk.py" "$BUILD/base.apk" "$BUILD/dex/classes.dex" "$BUILD/aligne.apk"
 java -jar "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass "pass:$KEYSTORE_MDP" --key-pass "pass:$KEYSTORE_MDP" \
   --ks-key-alias "$KEY_ALIAS" --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
-  --out "$BUILD/Colombe3-Suivi.apk" "$BUILD/aligne.apk" 2>&1 | grep -v '^Picked up JAVA_TOOL_OPTIONS' || true
-java -jar "$APKSIGNER" verify "$BUILD/Colombe3-Suivi.apk" 2>/dev/null \
+  --out "$BUILD/Aurore.apk" "$BUILD/aligne.apk" 2>&1 | grep -v '^Picked up JAVA_TOOL_OPTIONS' || true
+java -jar "$APKSIGNER" verify "$BUILD/Aurore.apk" 2>/dev/null \
   || { echo "La signature de l'APK n'est pas valide" >&2; exit 1; }
 
-echo "APK prêt : $BUILD/Colombe3-Suivi.apk ($(du -h "$BUILD/Colombe3-Suivi.apk" | cut -f1))"
+echo "APK prêt : $BUILD/Aurore.apk ($(du -h "$BUILD/Aurore.apk" | cut -f1))"

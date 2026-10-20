@@ -1,4 +1,4 @@
-/* Colombe 3 — Suivi budgétaire.
+/* Aurore — suivi budgétaire de chantier.
  * Application hors ligne : fonctionne dans la WebView Android (objet AndroidPont)
  * ou dans un navigateur (stockage local du navigateur). */
 (function () {
@@ -455,7 +455,7 @@
       entree('lots', 'dossier', 'Lots de travaux', pluriel(etat.lots.length, 'lot')) +
       entree('reinitialiser', 'annuler', 'Revenir aux données du classeur Excel', 'Efface les saisies faites dans l\'application') +
       '</div></section>' +
-      '<p class="pied-page">Colombe 3 · Suivi budgétaire' + (version ? ' · version ' + esc(version) : '') + '<br>' +
+      '<p class="pied-page">Aurore · Suivi budgétaire' + (version ? ' · version ' + esc(version) : '') + '<br>' +
       pluriel(etat.postes.length, 'poste') + ' · ' + pluriel(etat.paiements.length, 'paiement') +
       (etat.sauvegardeLe ? '<br>Dernière sauvegarde exportée le ' + dateFr(etat.sauvegardeLe.slice(0, 10)) : '') + '</p>';
   }
@@ -1252,7 +1252,7 @@
         etat.sauvegardeLe = new Date().toISOString();
         sauver(true);
         var octets = new TextEncoder().encode(JSON.stringify(etat, null, 1));
-        livrer(nomFichier('Colombe3_sauvegarde', 'json'), enBase64(octets), 'application/json', mode);
+        livrer(nomFichier('Aurore_sauvegarde', 'json'), enBase64(octets), 'application/json', mode);
         toutRafraichir();
       });
   }
@@ -1378,7 +1378,7 @@
     var plage = "'Suivi détaillé'!";
     var tdb = [
       [etat.projet.nom.toUpperCase() + (etat.projet.sousTitre ? ' — ' + etat.projet.sousTitre : '')],
-      ['Exporté le ' + dateFr(aujourdhui()) + ' depuis l\'application Colombe 3'],
+      ['Exporté le ' + dateFr(aujourdhui()) + ' depuis l\'application Aurore'],
       [],
       ['BUDGET TOTAL', 'MONTANT PAYÉ', 'RESTE À DÉCAISSER', 'AVANCEMENT']
     ];
@@ -1406,7 +1406,7 @@
     X.utils.book_append_sheet(classeur, fTdb, 'Tableau de bord');
     X.utils.book_append_sheet(classeur, fSuivi, 'Suivi détaillé');
     X.utils.book_append_sheet(classeur, fHisto, 'Historique');
-    classeur.Props = { Title: etat.projet.nom + ' — Suivi budgétaire', Author: 'Application Colombe 3' };
+    classeur.Props = { Title: etat.projet.nom + ' — Suivi budgétaire', Author: 'Application Aurore' };
     return classeur;
   }
 
