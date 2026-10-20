@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hiram</title>
+  <meta name="description" content="Détecteur de radars routiers, caméras cachées, traceurs Bluetooth, champs magnétiques et ultrasons.">
+  <meta name="theme-color" content="#0f1828">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#accueil" aria-label="Hiram, accueil">
+        <img class="brand-mark" src="assets/icon.svg" alt="" width="30" height="30">
+        <span class="brand-name">Hiram</span>
+      </a>
+      <span class="status-dots"><span class="dot" id="gps-dot" title="Surveillance radar à l’arrêt"></span></span>
+      <a class="icon-btn" id="settings-link" href="#reglages" data-route="reglages" aria-label="Réglages"></a>
+    </header>
+    <div class="demo-banner" id="demo-banner" hidden>
+      <span>Mode démo · données simulées</span>
+      <button type="button" id="demo-exit">Quitter la démo</button>
+    </div>
+    <main class="view" id="view"></main>
+    <nav class="tabbar" id="tabs" aria-label="Détecteurs"></nav>
+  </div>
+  <noscript>Hiram a besoin de JavaScript pour accéder aux capteurs du téléphone.</noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

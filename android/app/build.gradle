@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.application'
+}
+
+// L'application web (à la racine du dépôt) est embarquée telle quelle dans l'APK.
+def webRoot = rootProject.file('..')
+def keystore = System.getenv('ANDROID_KEYSTORE_FILE')
+
+android {
+    namespace 'io.github.bandao100.hiram'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.bandao100.hiram'
+        minSdk 26
+        targetSdk 35
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+        versionName '1.1.0'
+    }
+
+    signingConfigs {
+        release {
+            if (keystore) {
+                storeFile file(keystore)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Sans clé fournie, l'APK est signé avec la clé de débogage : installable, mais une
+            // mise à jour signée par une autre machine demandera de désinstaller l'ancienne version.
+            signingConfig keystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+tasks.register('copyWebApp') {
+    description = "Copie l'application web dans les ressources de l'APK."
+    doLast {
+        def out = file('src/main/assets/www')
+        project.delete(out)
+        project.copy {
+            from(webRoot) {
+                include 'index.html', 'manifest.webmanifest', 'css/**', 'js/**', 'assets/**'
+            }
+            into out
+        }
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn 'copyWebApp'
+}
