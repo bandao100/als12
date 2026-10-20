@@ -1,0 +1,11 @@
+# Sorties de compilation
+build/
+livraison/
+
+# Données personnelles du chantier (générées depuis le classeur Excel) : jamais dans le dépôt public
+web/donnees-initiales.js
+*.xlsx
+
+# Clé de signature de l'APK : à conserver en lieu sûr, hors du dépôt
+*.keystore
+*.jks
