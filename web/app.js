@@ -60,6 +60,12 @@
     var j = JOURS[new Date(p[0], p[1] - 1, p[2]).getDay()];
     return j.charAt(0).toUpperCase() + j.slice(1) + ' ' + p[2] + ' ' + MOIS[p[1] - 1] + ' ' + p[0];
   }
+  /** Date locale (aaaa-mm-jj) d'un horodatage ISO, pour l'affichage. */
+  function jourLocal(horodatage) {
+    var d = new Date(horodatage);
+    if (isNaN(d)) return '';
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
   function moisCourt(ym) {
     var p = ym.split('-');
     return MOIS_COURTS[+p[1] - 1] + ' ' + p[0];
@@ -67,7 +73,7 @@
 
   function uid(prefixe) { return prefixe + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function lireMontant(v) { return parseInt(String(v || '').replace(/[^\d]/g, ''), 10) || 0; }
-  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function norm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function copie(o) { return JSON.parse(JSON.stringify(o)); }
   function icone(nom, classe) {
     return '<svg class="ico' + (classe ? ' ' + classe : '') + '" aria-hidden="true"><use href="#i-' + nom + '"/></svg>';
@@ -118,19 +124,31 @@
     return d;
   }
 
+  var ERREUR_LECTURE = '!erreur';   // renvoyé par le pont Android si le fichier existe mais est illisible
+
   function charger() {
-    var d = null;
-    try { d = analyser(pont ? pont.lireDonnees() : localStorage.getItem(CLE)); } catch (e) { d = null; }
+    var brut = '', d = null;
+    try { brut = pont ? pont.lireDonnees() : localStorage.getItem(CLE); } catch (e) { brut = ERREUR_LECTURE; }
+    var illisible = brut === ERREUR_LECTURE || (!!brut && !analyser(brut));
+    d = analyser(brut);
     if (!d && pont) {
       try { d = analyser(pont.lireSecours()) || analyser(localStorage.getItem(CLE)); } catch (e) { d = null; }
     }
-    var premiere = !d;
     etat = normaliser(d || copie(INITIALES));
-    if (premiere) sauver(true);
+    if (d) return;
+    if (illisible) {
+      // Ne rien réécrire : le fichier d'origine reste intact pour une nouvelle tentative.
+      lectureEchouee = true;
+    } else {
+      sauver(true);   // premier lancement : enregistre les données du classeur
+    }
   }
+
+  var lectureEchouee = false;
 
   function sauver(sansDate) {
     if (!sansDate) etat.modifieLe = new Date().toISOString();
+    lectureEchouee = false;
     calc = null;
     var json = JSON.stringify(etat);
     var ok = true;
@@ -346,7 +364,7 @@
         : '<div class="carte vide">Aucun paiement enregistré.</div>') + '</section>';
 
     html += '<p class="pied-page">' + pluriel(etat.paiements.length, 'paiement') + ' enregistré' + (etat.paiements.length > 1 ? 's' : '') +
-      (etat.modifieLe ? ' · modifié le ' + dateFr(etat.modifieLe.slice(0, 10)) : '') + '</p>';
+      (etat.modifieLe ? ' · modifié le ' + dateFr(jourLocal(etat.modifieLe)) : '') + '</p>';
     return html;
   }
 
@@ -457,7 +475,7 @@
       '</div></section>' +
       '<p class="pied-page">Aurore · Suivi budgétaire' + (version ? ' · version ' + esc(version) : '') + '<br>' +
       pluriel(etat.postes.length, 'poste') + ' · ' + pluriel(etat.paiements.length, 'paiement') +
-      (etat.sauvegardeLe ? '<br>Dernière sauvegarde exportée le ' + dateFr(etat.sauvegardeLe.slice(0, 10)) : '') + '</p>';
+      (etat.sauvegardeLe ? '<br>Dernière sauvegarde exportée le ' + dateFr(jourLocal(etat.sauvegardeLe)) : '') + '</p>';
   }
 
   var ONGLETS = {
@@ -488,6 +506,8 @@
   };
 
   function rendre() {
+    if (ui.lot && !lot(ui.lot)) ui.lot = '';
+    if (ui.hLot && !lot(ui.hLot)) ui.hLot = '';
     var o = ONGLETS[ui.onglet];
     $('#titre').textContent = o.titre();
     $('#sous-titre').textContent = o.sous();
@@ -534,7 +554,12 @@
     el.innerHTML = '<header class="feuille-entete"><button class="bouton-icone" data-action="fermer-feuille" aria-label="Retour">' +
       icone('retour') + '</button><h2>' + esc(o.titre) + '</h2><div class="actions-haut">' + (o.actions || '') + '</div></header>' +
       '<div class="feuille-corps"></div>';
-    var f = { el: el, rendu: o.rendu || null };
+    var f = { el: el, rendu: o.rendu || null, fermee: false };
+    ['click', 'submit'].forEach(function (type) {
+      el.addEventListener(type, function (e) {
+        if (f.fermee) { e.preventDefault(); e.stopPropagation(); }
+      }, true);
+    });
     el.querySelector('.feuille-corps').innerHTML = o.rendu ? o.rendu() : o.corps;
     pile.push(f);
     document.body.appendChild(el);
@@ -550,6 +575,7 @@
     var i = pile.indexOf(f);
     if (i < 0) return false;
     pile.splice(i, 1);
+    f.fermee = true;
     if (!pile.length) document.body.classList.remove('avec-feuille');
     if (document.activeElement && f.el.contains(document.activeElement)) document.activeElement.blur();
     f.el.classList.remove('ouverte');
@@ -704,7 +730,7 @@
     ouvrirFeuille({
       titre: titre,
       corps: corps,
-      apres: function (el) {
+      apres: function (el, feuille) {
         var form = el.querySelector('form');
         var prestaModifie = !!(v && v.prestataire);
 
@@ -810,7 +836,11 @@
 
         if (!v && poste(choix.posteId)) form.prestataire.value = poste(choix.posteId).prestataire;
         maj();
-        if (!choix.posteId) setTimeout(function () { choisirPoste(choisi); }, 260);
+        if (!choix.posteId) {
+          setTimeout(function () {
+            if (pile[pile.length - 1] === feuille && !choix.posteId) choisirPoste(choisi);
+          }, 260);
+        }
       }
     });
   }
@@ -845,8 +875,9 @@
                   '</span></button>';
               }).join('') + '</div></section>';
           });
-          el.querySelector('[data-role="liste"]').innerHTML = html ||
-            '<div class="vide">Aucun poste à régler' + (nq ? ' ne correspond' : '') + '.<br>Cochez « Afficher aussi les postes déjà soldés » ou créez un nouveau poste.</div>';
+          el.querySelector('[data-role="liste"]').innerHTML = html || (nq
+            ? '<div class="vide">Aucun poste ne correspond à cette recherche.<br>Vous pouvez créer un nouveau poste.</div>'
+            : '<div class="vide">Aucun poste à régler.<br>Cochez « Afficher aussi les postes déjà soldés » ou créez un nouveau poste.</div>');
         }
         el.querySelector('[data-role="q"]').addEventListener('input', function (e) { q = e.target.value; maj(); });
         el.querySelector('[data-role="soldes"]').addEventListener('change', function (e) { soldes = e.target.checked; maj(); });
@@ -933,6 +964,20 @@
           var acompteManquant = reglement === 'acompte' && !acompte;
           if (form.acompte) form.querySelector('[data-erreur="acompte"]').hidden = !acompteManquant;
           if (!nom || budgetManquant || acompteManquant) return;
+          var dejaPaye = p ? k().parPoste[p.id].paye : 0;
+          if (p && budget < dejaPaye && !form.dataset.confirme) {
+            demander({
+              titre: 'Budget inférieur au montant payé',
+              message: 'Le budget saisi (' + fcfa(budget) + ') est inférieur au montant déjà payé sur ce poste (' + fcfa(dejaPaye) +
+                ').\nEnregistrer quand même ?',
+              ok: 'Enregistrer'
+            }).then(function (ok) {
+              if (!ok) return;
+              form.dataset.confirme = '1';
+              form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
+            });
+            return;
+          }
 
           var lotId = form.lot.value;
           if (lotId === '__nouveau__') {
@@ -1240,6 +1285,11 @@
     });
   }
 
+  /** « Colombe 3 » -> « Colombe3 » : nom du projet utilisable dans un nom de fichier. */
+  function prefixeProjet() {
+    return String(etat.projet.nom).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '') || 'Chantier';
+  }
+
   function nomFichier(prefixe, extension) {
     return prefixe + '_' + aujourdhui() + '.' + extension;
   }
@@ -1278,7 +1328,7 @@
         titre: 'Restaurer cette sauvegarde ?',
         message: 'Les données actuelles (' + pluriel(etat.postes.length, 'poste') + ', ' + pluriel(etat.paiements.length, 'paiement') +
           ') seront remplacées par celles du fichier (' + pluriel(d.postes.length, 'poste') + ', ' + pluriel(d.paiements.length, 'paiement') +
-          (d.modifieLe ? ', modifié le ' + dateFr(String(d.modifieLe).slice(0, 10)) : '') + ').',
+          (d.modifieLe ? ', modifié le ' + dateFr(jourLocal(d.modifieLe)) : '') + ').',
         ok: 'Restaurer',
         danger: true
       }).then(function (ok) {
@@ -1320,7 +1370,7 @@
         if (!mode) return;
         return chargerXlsx().then(function (X) {
           var b64 = X.write(construireClasseur(X), { bookType: 'xlsx', type: 'base64', compression: true });
-          livrer(nomFichier('Colombe3_Suivi', 'xlsx'), b64, MIME_XLSX, mode);
+          livrer(nomFichier(prefixeProjet() + '_Suivi', 'xlsx'), b64, MIME_XLSX, mode);
         });
       })
       .catch(function (e) { toast('Export impossible : ' + e.message, { type: 'erreur' }); });
@@ -1369,7 +1419,8 @@
       var p = poste(v.posteId);
       histo.push([date(v.date), p ? p.nom : '(poste supprimé)', p ? lotLibelle(p.lot) : '', v.prestataire, nb(v.montant), v.mode, v.notes]);
     });
-    histo.push(['TOTAL PAIEMENTS ENREGISTRÉS', '', '', '', formule('SUM(E2:E' + histo.length + ')', t.paye)]);
+    var totalHisto = paiements.reduce(function (a, v) { return a + v.montant; }, 0);
+    histo.push(['TOTAL PAIEMENTS ENREGISTRÉS', '', '', '', formule('SUM(E2:E' + histo.length + ')', totalHisto)]);
     var fHisto = X.utils.aoa_to_sheet(histo);
     fHisto['!cols'] = [{ wch: 12 }, { wch: 52 }, { wch: 36 }, { wch: 22 }, { wch: 16 }, { wch: 13 }, { wch: 70 }];
     fHisto['!autofilter'] = { ref: 'A1:G' + (histo.length - 1) };
@@ -1387,7 +1438,7 @@
       formule('A5-B5', t.reste), formule('IF(A5>0,B5/A5,0)', t.taux, FMT_PCT)]);
     tdb.push([], ['LOT', 'BUDGET (F CFA)', 'PAYÉ (F CFA)', 'RESTE (F CFA)', 'AVANCEMENT', 'POSTES', 'SOLDÉS']);
     etat.lots.forEach(function (l, i) {
-      var s = c.parLot[l.id] || { budget: 0, paye: 0, reste: 0, taux: 0, nb: 0, soldes: 0 }, r = debutLots + i, crit = '"' + lotLibelle(l.id).replace(/"/g, '""') + '"';
+      var s = c.parLot[l.id] || { budget: 0, paye: 0, reste: 0, taux: 0, nb: 0, soldes: 0 }, r = debutLots + i, crit = '"' + lotLibelle(l.id).replace(/[~*?]/g, '~$&').replace(/"/g, '""') + '"';
       tdb.push([lotLibelle(l.id),
         formule('SUMIF(' + plage + '$J:$J,' + crit + ',' + plage + '$D:$D)', s.budget),
         formule('SUMIF(' + plage + '$J:$J,' + crit + ',' + plage + '$E:$E)', s.paye),
@@ -1445,12 +1496,18 @@
     'reinitialiser': reinitialiser
   };
 
+  var dernierAppui = { el: null, quand: 0 };
+
   document.addEventListener('click', function (e) {
     var el = e.target.closest('[data-action]');
     if (!el || el.disabled) return;
     var action = ACTIONS[el.dataset.action];
     if (!action) return;
     e.preventDefault();
+    // Un double appui sur le même bouton n'ouvre pas deux fois la même page.
+    var maintenant = Date.now();
+    if (dernierAppui.el === el && maintenant - dernierAppui.quand < 600) return;
+    dernierAppui = { el: el, quand: maintenant };
     if (el.dataset.fermer) fermerFeuille();
     action(el.dataset, el);
   });
@@ -1484,4 +1541,7 @@
   }
   charger();
   rendre();
+  if (lectureEchouee) {
+    toast('Les données enregistrées n\'ont pas pu être lues. Redémarrez l\'application avant toute saisie.', { type: 'erreur' });
+  }
 })();

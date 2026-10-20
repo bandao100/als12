@@ -38,7 +38,7 @@ garder l'identifiant `com.colombe3.suivi`.
 
 ## Recompiler l'APK
 
-Aucun Android Studio ni SDK Android n'est nécessaire : il faut Java 17+, Python 3 (avec
+Aucun Android Studio ni SDK Android n'est nécessaire : il faut Linux x86-64, Java 17+, Python 3 (avec
 `openpyxl` et `Pillow`), `curl` et `unzip`.
 
 ```bash

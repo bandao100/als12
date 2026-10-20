@@ -79,7 +79,8 @@ def feuille(classeur, mot):
 
 
 def main(source, cible):
-    classeur = openpyxl.load_workbook(source)
+    # data_only : valeurs calculées, au cas où des montants seraient saisis sous forme de formules
+    classeur = openpyxl.load_workbook(source, data_only=True)
     suivi = feuille(classeur, "Suivi")
     historique = feuille(classeur, "Historique")
 

@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.webkit.JavascriptInterface;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -73,6 +74,9 @@ public class MainActivity extends Activity {
         // Nécessaire pour lire le fichier choisi lors de la restauration d'une sauvegarde.
         reglages.setAllowContentAccess(true);
         reglages.setMediaPlaybackRequiresUserGesture(true);
+        // Suit la taille de police du téléphone, plafonnée à 130 % pour préserver la mise en page.
+        float echelle = getResources().getConfiguration().fontScale;
+        reglages.setTextZoom(Math.round(100 * Math.max(1f, Math.min(echelle, 1.3f))));
 
         web.addJavascriptInterface(new Pont(), "AndroidPont");
         web.setWebViewClient(new ClientWeb());
@@ -86,11 +90,17 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle etat) {
         super.onSaveInstanceState(etat);
-        web.saveState(etat);
+        if (web != null) {
+            web.saveState(etat);
+        }
     }
 
     @Override
     public void onBackPressed() {
+        if (web == null) {
+            super.onBackPressed();
+            return;
+        }
         web.evaluateJavascript("window.retourArriere ? window.retourArriere() : false", valeur -> {
             if (!"true".equals(valeur)) {
                 MainActivity.super.onBackPressed();
@@ -145,6 +155,7 @@ public class MainActivity extends Activity {
     }
 
     private void transmettreInsets() {
+        if (web == null) return;
         String js = "window.appliquerMarges && window.appliquerMarges(" + insetHaut + "," + insetBas + ")";
         web.evaluateJavascript(js, null);
     }
@@ -183,6 +194,19 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(Intent.ACTION_VIEW, url));
             } catch (ActivityNotFoundException ignore) {
                 // Aucune application pour ouvrir ce lien.
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onRenderProcessGone(WebView vue, RenderProcessGoneDetail detail) {
+            // Sans ce traitement, Android ferme l'application. Les données sont déjà enregistrées :
+            // on libère la WebView et on recrée l'écran.
+            if (vue == web) {
+                cadre.removeView(web);
+                web.destroy();
+                web = null;
+                recreate();
             }
             return true;
         }
@@ -296,7 +320,8 @@ public class MainActivity extends Activity {
             try {
                 return fichier.exists() ? lireTexte(fichier) : "";
             } catch (IOException e) {
-                return "";
+                // Le fichier existe mais n'a pas pu être lu : la page ne doit pas le réécrire.
+                return "!erreur";
             }
         }
 
@@ -417,11 +442,6 @@ public class MainActivity extends Activity {
                 }
             });
             return "";
-        }
-
-        @JavascriptInterface
-        public void quitter() {
-            runOnUiThread(MainActivity.this::finish);
         }
     }
 }

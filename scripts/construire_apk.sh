@@ -7,7 +7,7 @@
 # web/donnees-initiales.js et embarquées dans l'APK. Sans argument, le fichier
 # web/donnees-initiales.js déjà présent est utilisé (application vide s'il n'existe pas).
 #
-# Prérequis : Java 17+, Python 3, curl, unzip.
+# Prérequis : Linux x86-64, Java 17+, Python 3 (openpyxl), curl, unzip.
 # Les outils (aapt2, d8, apksigner, bibliothèque Android 15) sont téléchargés une fois
 # dans $OUTILS (par défaut ~/.cache/aurore-outils) et vérifiés par empreinte SHA-256.
 set -euo pipefail
@@ -15,8 +15,8 @@ set -euo pipefail
 RACINE="$(cd "$(dirname "$0")/.." && pwd)"
 OUTILS="${OUTILS:-$HOME/.cache/aurore-outils}"
 BUILD="$RACINE/build"
-VERSION_CODE="${VERSION_CODE:-2}"
-VERSION_NOM="${VERSION_NOM:-1.1}"
+VERSION_CODE="${VERSION_CODE:-3}"
+VERSION_NOM="${VERSION_NOM:-1.2}"
 MIN_SDK=24
 CIBLE_SDK=35
 
@@ -58,8 +58,15 @@ telecharger "https://repo1.maven.org/maven2/org/robolectric/android-all/15-robol
 AAPT2="$OUTILS/aapt2"
 APKSIGNER="$OUTILS/apksigner.jar"
 ANDROID_JAR="$OUTILS/android-all.jar"
-[ -x "$AAPT2" ] || { unzip -o -q -p "$OUTILS/apktool.jar" prebuilt/linux/aapt2_64 > "$AAPT2"; chmod +x "$AAPT2"; }
-[ -f "$APKSIGNER" ] || unzip -o -q -p "$OUTILS/uber-apk-signer.jar" lib/apksigner_33_0_2.jar > "$APKSIGNER"
+# Extraction via un fichier temporaire : une extraction interrompue ne laisse pas d'outil tronqué.
+if [ ! -x "$AAPT2" ]; then
+  unzip -o -q -p "$OUTILS/apktool.jar" prebuilt/linux/aapt2_64 > "$AAPT2.part"
+  chmod +x "$AAPT2.part" && mv "$AAPT2.part" "$AAPT2"
+fi
+if [ ! -f "$APKSIGNER" ]; then
+  unzip -o -q -p "$OUTILS/uber-apk-signer.jar" lib/apksigner_33_0_2.jar > "$APKSIGNER.part"
+  mv "$APKSIGNER.part" "$APKSIGNER"
+fi
 
 if [ ! -f "$KEYSTORE" ]; then
   echo "Création de la clé de signature $KEYSTORE"
@@ -89,8 +96,9 @@ javac -nowarn --release 11 -encoding UTF-8 -cp "$ANDROID_JAR" -d "$BUILD/classes
 [ -n "$(find "$BUILD/classes" -name 'MainActivity.class')" ] || { echo "Échec de la compilation Java" >&2; exit 1; }
 
 echo "4/5 Conversion DEX (d8)"
+mapfile -t CLASSES < <(find "$BUILD/classes" -name '*.class')
 java -cp "$OUTILS/r8lib.jar" com.android.tools.r8.D8 --release --min-api "$MIN_SDK" \
-  --lib "$ANDROID_JAR" --output "$BUILD/dex" $(find "$BUILD/classes" -name '*.class') 2>&1 \
+  --lib "$ANDROID_JAR" --output "$BUILD/dex" "${CLASSES[@]}" 2>&1 \
   | grep -v '^Picked up JAVA_TOOL_OPTIONS' || true
 [ -f "$BUILD/dex/classes.dex" ] || { echo "Échec de d8" >&2; exit 1; }
 
