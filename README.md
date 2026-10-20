@@ -1,13 +1,13 @@
 # Site internet ASK'N CO
 
-Site vitrine d'ASK'N CO, Multiple Service Company : formation, ingénierie pédagogique, santé communautaire, études épidémiologiques et suivi-évaluation.
+Site vitrine d'ASK'N CO, Multiple Service Company : traduction et interprétariat, bâtiment et travaux publics, fourniture de matériel, réseaux et télécommunications, assistance juridique et intermédiation financière.
 
 Site statique (HTML, CSS, JavaScript), sans dépendance ni étape de compilation. Il s'adapte aux téléphones et suit le thème clair ou sombre de l'appareil du visiteur.
 
 ## Contenu
 
 ```
-index.html              Page unique : accueil, services, approche, publics, à propos, contact
+index.html              Page unique : accueil, services, méthode, clients, à propos, contact
 assets/css/style.css    Styles (couleurs de la marque définies en haut du fichier)
 assets/js/main.js       Menu mobile, filtre des services, formulaire de contact
 assets/img/             Logo (clair et sombre), favicon, image de partage
@@ -29,7 +29,8 @@ Les coordonnées sont des exemples à remplacer dans `index.html` (section `Cont
 - [ ] E-mail : `votre-email@exemple.com` (le formulaire envoie les demandes à cette adresse)
 - [ ] Téléphone / WhatsApp : `+XXX XX XX XX XX`
 - [ ] Adresse : `Ville, Pays`
-- [ ] Vérifier la liste des services, des publics et des outils pour qu'elle corresponde exactement à vos activités
+- [ ] Vérifier les prestations de chaque métier et la liste des clients pour qu'elles correspondent exactement à vos activités
+- [ ] Ajouter vos autres métiers s'il y en a : copier un bloc `<article class="service">` dans la section `Services` et ajouter l'option correspondante dans la liste « Service souhaité » du formulaire
 - [ ] Après la mise en ligne, remplacer `assets/img/og-image.jpg` dans la balise `og:image` par l'adresse complète (`https://…/assets/img/og-image.jpg`) pour un bel aperçu lors des partages sur les réseaux sociaux
 
 ## Formulaire de contact

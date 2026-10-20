@@ -91,7 +91,7 @@
       }
 
       var data = new FormData(form);
-      var subject = "Demande de service : " + data.get("service");
+      var subject = "Demande de devis : " + data.get("service");
       var body = [
         "Nom : " + data.get("nom"),
         "Organisation : " + (data.get("organisation") || "-"),

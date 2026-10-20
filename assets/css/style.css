@@ -1,4 +1,4 @@
-/* Concept : le cycle de projet comme fil conducteur ; bleu = éducation et marque, vert = santé, les deux mêlés = recherche. */
+/* Concept : ASK'N CO au centre d'un réseau de six métiers ; bleu = services et conseil, vert = travaux et équipements. */
 :root {
   --blue: #0E4A7E;
   --blue-strong: #0A3963;
@@ -10,9 +10,8 @@
   --bg-alt: #F0F4F8;
   --surface: #FFFFFF;
   --line: #D5DEE7;
-  --tag-edu-bg: #E3EDF7;
-  --tag-sante-bg: #E2F3E4;
-  --tag-rech-bg: #E9F1EE;
+  --tag-blue-bg: #E3EDF7;
+  --tag-green-bg: #E2F3E4;
   --band-bg: #0E4A7E;
   --band-ink: #F2F7FB;
   --band-muted: #C3D5E6;
@@ -25,6 +24,7 @@
   --footer-line: rgba(255, 255, 255, 0.1);
   --header-bg: rgba(255, 255, 255, 0.92);
   --core-bg: #EAF3EC;
+  --hub-core: #FFFFFF;
   --on-accent: #FFFFFF;
   --focus: #1E9430;
   --error: #B93A0B;
@@ -59,9 +59,8 @@
     --bg-alt: #0F1E2C;
     --surface: #12243A;
     --line: #23394F;
-    --tag-edu-bg: #15324F;
-    --tag-sante-bg: #143723;
-    --tag-rech-bg: #17323A;
+    --tag-blue-bg: #15324F;
+    --tag-green-bg: #143723;
     --band-bg: #0F2A45;
     --band-ink: #EAF2F9;
     --band-muted: #A9C1D8;
@@ -70,6 +69,7 @@
     --footer-ink: #A9BACB;
     --header-bg: rgba(11, 22, 33, 0.9);
     --core-bg: #12302A;
+    --hub-core: #E8F0F7;
     --on-accent: #06121D;
     --focus: #4CC35F;
     --error: #FF8A5C;
@@ -90,9 +90,8 @@
   --bg-alt: #0F1E2C;
   --surface: #12243A;
   --line: #23394F;
-  --tag-edu-bg: #15324F;
-  --tag-sante-bg: #143723;
-  --tag-rech-bg: #17323A;
+  --tag-blue-bg: #15324F;
+  --tag-green-bg: #143723;
   --band-bg: #0F2A45;
   --band-ink: #EAF2F9;
   --band-muted: #A9C1D8;
@@ -101,6 +100,7 @@
   --footer-ink: #A9BACB;
   --header-bg: rgba(11, 22, 33, 0.9);
   --core-bg: #12302A;
+  --hub-core: #E8F0F7;
   --on-accent: #06121D;
   --focus: #4CC35F;
   --error: #FF8A5C;
@@ -188,7 +188,7 @@ a { color: var(--blue); }
 .btn:hover { background: var(--blue-strong); border-color: var(--blue-strong); }
 .btn:active { transform: translateY(1px); }
 .btn-ghost { background: transparent; color: var(--blue); }
-.btn-ghost:hover { background: var(--tag-edu-bg); color: var(--blue); border-color: var(--blue); }
+.btn-ghost:hover { background: var(--tag-blue-bg); color: var(--blue); border-color: var(--blue); }
 .btn-small { min-height: 40px; padding: 0 18px; font-size: 0.9375rem; }
 
 /* En-tête */
@@ -273,7 +273,7 @@ a { color: var(--blue); }
 .lead { font-size: var(--step-1); color: var(--muted); max-width: 60ch; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 
-.hero-domains {
+.hero-points {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
@@ -281,31 +281,30 @@ a { color: var(--blue); }
   padding-top: 24px;
   border-top: 1px solid var(--line);
 }
-.hero-domains div { min-width: 0; }
-.hero-domains dt { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--ink); }
-.hero-domains div:nth-child(1) dt { color: var(--blue); }
-.hero-domains div:nth-child(2) dt { color: var(--green-ink); }
-.hero-domains dd { margin: 4px 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.5; }
+.hero-points div { min-width: 0; }
+.hero-points dt { font-family: var(--font-display); font-weight: 700; font-size: 1rem; color: var(--ink); }
+.hero-points dd { margin: 4px 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.5; }
 
-.hero-cycle { margin: 0; min-width: 0; }
-.hero-cycle svg { display: block; width: 100%; max-width: 460px; height: auto; margin-inline: auto; overflow: visible; }
-.cycle-ring { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 2 7; stroke-linecap: round; }
-.cycle-core { fill: var(--core-bg); stroke: var(--green); stroke-width: 1.5; stroke-opacity: 0.45; }
-.core-title { font-family: var(--font-display); font-weight: 800; font-size: 17px; fill: var(--ink); }
-.core-sub { font-family: var(--font-body); font-size: 11px; fill: var(--muted); }
-.cycle-arc {
-  fill: none;
-  stroke: var(--green);
-  stroke-width: 3;
+.hero-hub { margin: 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.hero-hub svg { display: block; width: 100%; max-width: 460px; height: auto; overflow: visible; }
+.hub-ring { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 2 7; stroke-linecap: round; }
+.hub-core { fill: var(--hub-core); stroke: var(--line); stroke-width: 1.5; }
+.hub-link {
+  stroke-width: 2.5;
   stroke-linecap: round;
-  stroke-dasharray: 10 8;
+  stroke-dasharray: 8 8;
   animation: flow 2.4s linear infinite;
 }
-.arrow-head { fill: var(--green); }
-.cycle-step rect { fill: var(--blue); }
-.cycle-step text { font-family: var(--font-body); font-weight: 500; font-size: 15px; fill: var(--on-accent); }
-.cycle-step .n { font-weight: 700; fill-opacity: 0.7; }
-@keyframes flow { to { stroke-dashoffset: -36; } }
+.hub-link.is-conseil { stroke: var(--blue); stroke-opacity: 0.55; }
+.hub-link.is-tech { stroke: var(--green); stroke-opacity: 0.7; }
+.hub-node rect { fill: var(--blue); }
+.hub-node.is-tech rect { fill: var(--green-ink); }
+.hub-node text { font-family: var(--font-body); font-weight: 500; font-size: 15px; fill: var(--on-accent); }
+.hub-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 0.875rem; color: var(--muted); }
+.legend-item { display: inline-flex; align-items: center; gap: 8px; }
+.legend-item::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); }
+.legend-item.is-tech::before { background: var(--green-ink); }
+@keyframes flow { to { stroke-dashoffset: -32; } }
 
 /* Sections */
 .section { padding-block: clamp(64px, 8vw, 112px); }
@@ -380,12 +379,8 @@ a { color: var(--blue); }
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.tag-education { background: var(--tag-edu-bg); color: var(--blue); }
-.tag-sante { background: var(--tag-sante-bg); color: var(--green-ink); }
-.tag-recherche {
-  background: linear-gradient(90deg, var(--tag-edu-bg), var(--tag-sante-bg));
-  color: var(--ink);
-}
+.tag-conseil { background: var(--tag-blue-bg); color: var(--blue); }
+.tag-tech { background: var(--tag-green-bg); color: var(--green-ink); }
 
 /* Étapes */
 .steps {
@@ -468,15 +463,31 @@ a { color: var(--blue); }
 .values li { color: var(--band-muted); font-size: 0.9375rem; padding-top: 14px; border-top: 1px solid var(--band-line); }
 .values strong { display: block; color: var(--band-ink); font-family: var(--font-display); font-size: 1.0625rem; font-weight: 700; margin-bottom: 2px; }
 .band-aside { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.chips li {
-  padding: 8px 14px;
-  border-radius: 999px;
+.band-aside h3 { font-size: 1.25rem; }
+.combo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; counter-reset: combo; }
+.combo li {
+  counter-increment: combo;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  column-gap: 14px;
+  padding-block: 12px;
+  border-top: 1px solid var(--band-line);
+}
+.combo li::before {
+  content: counter(combo);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--band-chip);
   border: 1px solid var(--band-line);
   color: var(--band-ink);
-  font-size: 0.875rem;
+  font: 700 0.875rem/1 var(--font-display);
 }
+.combo-task { color: var(--band-ink); font-weight: 400; }
+.combo-service { color: var(--band-eyebrow); font-size: 0.8125rem; letter-spacing: 0.04em; }
 
 /* Contact */
 .contact-grid {
@@ -531,7 +542,7 @@ a { color: var(--blue); }
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: none;
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px var(--tag-edu-bg);
+  box-shadow: 0 0 0 3px var(--tag-blue-bg);
 }
 .field [aria-invalid="true"] { border-color: var(--error); }
 .contact-form .btn { align-self: flex-start; }
@@ -584,12 +595,12 @@ a { color: var(--blue); }
   .site-header { position: sticky; }
 
   .hero-grid { grid-template-columns: minmax(0, 1fr); }
-  .hero-cycle svg { max-width: 380px; }
+  .hero-hub svg { max-width: 380px; }
   .band-grid, .contact-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .hero-domains { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .hero-points { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .services-grid, .audiences, .values, .field-row { grid-template-columns: minmax(0, 1fr); }
   .steps { grid-template-columns: minmax(0, 1fr); row-gap: 28px; }
   .steps li { padding: 0 0 0 64px; min-height: 48px; }
@@ -613,7 +624,7 @@ a { color: var(--blue); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .cycle-arc { animation: none; }
+  .hub-link { animation: none; }
   .service, .btn, .filter { transition: none; }
   .service:hover { transform: none; }
 }
