@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#2456C7</color>
+    <color name="ic_launcher_background">#2456C7</color>
+    <color name="status_online">#1B7F4B</color>
+    <color name="status_offline">#6B7280</color>
+    <color name="status_unknown">#B45309</color>
+    <color name="status_trusted">#2456C7</color>
+</resources>

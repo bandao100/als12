@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Banque de questions</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Banque de questions</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" role="tab" data-view="browse">Parcourir</button>
+      <button class="tab" role="tab" data-view="add">Ajouter</button>
+      <button class="tab" role="tab" data-view="quiz">Quiz</button>
+      <button class="tab" role="tab" data-view="data">Import / Export</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="view-browse" class="view is-active">
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Rechercher un mot-clé…" aria-label="Rechercher">
+        <select id="filter-theme" aria-label="Filtrer par thème"></select>
+      </div>
+      <p id="count" class="muted"></p>
+      <ul id="question-list" class="question-list"></ul>
+    </section>
+
+    <section id="view-add" class="view">
+      <form id="question-form" class="card form">
+        <h2>Nouvelle question</h2>
+        <label>Thème
+          <input name="theme" required list="theme-list" autocomplete="off">
+        </label>
+        <datalist id="theme-list"></datalist>
+        <label>Énoncé
+          <textarea name="question" rows="3" required></textarea>
+        </label>
+        <label>Choix de réponse (un par ligne)
+          <textarea name="choices" rows="4" required></textarea>
+        </label>
+        <label>Numéro de la bonne réponse
+          <input name="answer" type="number" min="1" value="1" required>
+        </label>
+        <label>Explication (facultative)
+          <textarea name="explanation" rows="2"></textarea>
+        </label>
+        <p id="form-error" class="error" role="alert"></p>
+        <button type="submit" class="primary">Ajouter à la banque</button>
+      </form>
+    </section>
+
+    <section id="view-quiz" class="view">
+      <div id="quiz-setup" class="card form">
+        <h2>Lancer un quiz</h2>
+        <label>Thème
+          <select id="quiz-theme"></select>
+        </label>
+        <label>Nombre de questions
+          <input id="quiz-count" type="number" min="1" value="5">
+        </label>
+        <p id="quiz-empty" class="error" hidden>Aucune question disponible pour ce thème.</p>
+        <button id="quiz-start" class="primary">Commencer</button>
+      </div>
+
+      <div id="quiz-play" class="card" hidden>
+        <p id="quiz-progress" class="muted"></p>
+        <h2 id="quiz-question"></h2>
+        <div id="quiz-choices"></div>
+        <p id="quiz-feedback" class="feedback" hidden></p>
+        <div class="actions">
+          <button id="quiz-validate" class="primary">Valider</button>
+          <button id="quiz-next" hidden>Question suivante</button>
+        </div>
+      </div>
+
+      <div id="quiz-result" class="card" hidden>
+        <h2>Résultat</h2>
+        <p id="quiz-score"></p>
+        <div id="quiz-mistakes"></div>
+        <button id="quiz-restart" class="primary">Nouveau quiz</button>
+      </div>
+    </section>
+
+    <section id="view-data" class="view">
+      <div class="card">
+        <h2>Exporter</h2>
+        <p class="muted">Télécharge toute la banque au format JSON, pour la sauvegarder ou la transférer.</p>
+        <button id="export" class="primary">Exporter (JSON)</button>
+      </div>
+      <div class="card">
+        <h2>Importer</h2>
+        <p class="muted">Ajoute les questions d'un fichier exporté précédemment. Les questions déjà présentes sont ignorées.</p>
+        <input id="import-file" type="file" accept="application/json">
+        <p id="import-message" class="muted" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
