@@ -1,11 +1,13 @@
 import { formatDistance, toLocalXY } from '../core/geo.js';
 import { icons } from '../core/icons.js';
+import { isNative, nativeCall, nativeInfo } from '../core/native.js';
 import { CATEGORIES } from '../core/radar-logic.js';
 import { settings } from '../core/store.js';
 import { $, el, escapeHtml, toast } from '../core/ui.js';
 import { radarService } from '../services/radar-service.js';
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
+export const APK_URL = 'https://github.com/bandao100/als12/releases/download/android/sentinelle.apk';
 
 const SWITCHES = [
   ['voice', 'Alertes vocales', 'Annonce le type de radar, la distance et la limite.'],
@@ -63,7 +65,10 @@ export function settingsScreen(ctx) {
 
       <div class="panel">
         <div class="section-title"><h2>Application</h2></div>
+        <p class="small muted" id="s-app-info" style="margin-top:6px"></p>
         <div class="btn-row" style="margin-top:10px">
+          <a class="btn btn-primary" id="s-apk" href="${APK_URL}" target="_blank" rel="noopener">${icons.phone}<span>Télécharger l’application Android</span></a>
+          <button class="btn" id="s-perms" type="button" hidden>${icons.settings}<span>Autorisations de l’application</span></button>
           <button class="btn" id="s-install" type="button">${icons.phone}<span>Installer sur l’écran d’accueil</span></button>
           <button class="btn" id="s-cache" type="button">${icons.trash}<span>Vider le cache des radars</span></button>
         </div>
@@ -127,6 +132,17 @@ export function settingsScreen(ctx) {
     radarService.removeReported(b.dataset.remove);
     renderReported();
   });
+  function renderApp() {
+    const info = nativeInfo();
+    $('#s-apk', root).hidden = isNative;
+    $('#s-install', root).hidden = isNative;
+    $('#s-perms', root).hidden = !isNative;
+    $('#s-app-info', root).textContent = isNative
+      ? `Application Android ${info?.version || ''} sur ${info?.model || 'ce téléphone'} (Android ${info?.release || '?'}). Capteurs natifs : magnétomètre, boussole, Bluetooth, Wi-Fi, voix.`
+      : "L'application Android (APK) donne accès au magnétomètre, au scan Bluetooth complet et à l'analyse Wi-Fi sans aucun réglage caché.";
+  }
+  $('#s-perms', root).addEventListener('click', () => nativeCall('settings', 'app').catch(() => {}));
+
   $('#s-cache', root).addEventListener('click', () => {
     radarService.clearCache();
     toast('Cache vidé : les radars seront retéléchargés au prochain démarrage.');
@@ -152,6 +168,7 @@ export function settingsScreen(ctx) {
       renderTheme();
       renderSwitches();
       renderReported();
+      renderApp();
       unsub = settings.subscribe(onSettings);
     },
     unmount() {

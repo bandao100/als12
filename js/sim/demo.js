@@ -167,3 +167,17 @@ export function drawDemoIr(ctx, w, h, t) {
     ctx.fill();
   }
 }
+
+// Réseaux Wi-Fi fictifs : box de l'hôte, point d'accès de caméra, objets connectés.
+export function createDemoWifi() {
+  const jitter = () => Math.round((Math.random() - 0.5) * 6);
+  return [
+    { ssid: 'Livebox-4F2A', bssid: '00:1e:74:4f:2a:10', level: -48 + jitter(), frequency: 5180, capabilities: '[RSN-PSK-CCMP][ESS]' },
+    { ssid: 'HD-8821A3', bssid: '24:0a:c4:88:21:a3', level: -57 + jitter(), frequency: 2437, capabilities: '[ESS]' },
+    { ssid: 'Tapo_C200_3B10', bssid: '02:5c:3b:10:aa:01', level: -71 + jitter(), frequency: 2462, capabilities: '[ESS]' },
+    { ssid: '', bssid: '44:19:b6:10:22:33', level: -63 + jitter(), frequency: 2412, capabilities: '[RSN-PSK-CCMP][ESS]' },
+    { ssid: 'Maison_connectee', bssid: 'cc:50:e3:12:34:56', level: -79 + jitter(), frequency: 2437, capabilities: '[RSN-PSK-CCMP][ESS]' },
+    { ssid: 'Freebox-56A1C2', bssid: 'f4:ca:e5:56:a1:c2', level: -84 + jitter(), frequency: 5500, capabilities: '[RSN-SAE-CCMP][ESS]' },
+    { ssid: 'DIRECT-7B-HP LaserJet', bssid: 'da:12:65:7b:00:01', level: -88 + jitter(), frequency: 2412, capabilities: '[RSN-PSK-CCMP][ESS]' },
+  ];
+}

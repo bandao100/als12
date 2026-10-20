@@ -1,5 +1,5 @@
 // Service worker : l'application fonctionne hors ligne une fois chargée.
-const VERSION = 'sentinelle-v1.0.0';
+const VERSION = 'sentinelle-v1.1.0';
 const SHELL = [
   './',
   './index.html',
@@ -15,11 +15,13 @@ const SHELL = [
   './js/core/geo.js',
   './js/core/glint.js',
   './js/core/icons.js',
+  './js/core/native.js',
   './js/core/radar-logic.js',
   './js/core/sensors.js',
   './js/core/spectrum.js',
   './js/core/store.js',
   './js/core/ui.js',
+  './js/core/wifi.js',
   './js/screens/camera.js',
   './js/screens/emf.js',
   './js/screens/home.js',

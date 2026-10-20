@@ -1,4 +1,5 @@
 // Sons d'alerte, crépitement façon compteur Geiger, synthèse vocale et vibrations.
+import { isNative, nativeCall } from './native.js';
 import { settings } from './store.js';
 
 let ctx = null;
@@ -126,7 +127,13 @@ function pickVoice() {
 }
 
 export function speak(text) {
-  if (!settings.get('voice') || !('speechSynthesis' in window)) return;
+  if (!settings.get('voice')) return;
+  // La WebView Android n'a pas de synthèse vocale : on passe par la voix du téléphone.
+  if (isNative) {
+    nativeCall('speak', text).catch(() => {});
+    return;
+  }
+  if (!('speechSynthesis' in window)) return;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'fr-FR';
   const v = pickVoice();
@@ -137,7 +144,12 @@ export function speak(text) {
 }
 
 export function vibrate(pattern) {
-  if (!settings.get('vibrate') || !('vibrate' in navigator)) return;
+  if (!settings.get('vibrate')) return;
+  if (isNative) {
+    nativeCall('vibrate', Array.isArray(pattern) ? pattern : [pattern]).catch(() => {});
+    return;
+  }
+  if (!('vibrate' in navigator)) return;
   try {
     navigator.vibrate(pattern);
   } catch {

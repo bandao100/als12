@@ -1,10 +1,12 @@
 import { Clicker, audioContext, chime, unlockAudio, vibrate } from '../core/audio.js';
 import { KINDS, RssiFilter, estimateDistance, identifyDevice, proximityLabel, rssiToLevel } from '../core/ble.js';
 import { icons, kindIcons } from '../core/icons.js';
+import { fromNativeAdvert, isNative, nativeCall, nativePoll } from '../core/native.js';
 import { ToneTracker, bandLevel, findTonalPeaks, formatFrequency } from '../core/spectrum.js';
 import { settings } from '../core/store.js';
 import { $, animationLoop, el, escapeHtml, hiDpiCanvas, nf, themeColors, toast } from '../core/ui.js';
-import { createDemoBluetooth, createDemoSpectrum } from '../sim/demo.js';
+import { band, channel, rankNetworks, security, signalLabel } from '../core/wifi.js';
+import { createDemoBluetooth, createDemoSpectrum, createDemoWifi } from '../sim/demo.js';
 
 const RISK_ORDER = { high: 0, medium: 1, low: 2 };
 
@@ -27,11 +29,12 @@ export function wavesScreen() {
       <div class="screen-head">
         <span class="eyebrow">Ondes</span>
         <h1 id="w-title">Radio et ultrasons</h1>
-        <p>Recense les appareils Bluetooth autour de vous, repère les traceurs (AirTag, SmartTag, Tile) et capte les ultrasons qu'émettent certains appareils.</p>
+        <p>Recense les appareils Bluetooth et les réseaux Wi-Fi autour de vous, repère les traceurs (AirTag, SmartTag, Tile) et les points d'accès de caméras, et capte les ultrasons qu'émettent certains appareils.</p>
       </div>
 
       <div class="seg" id="w-tabs" role="group" aria-label="Type d'ondes">
         <button type="button" data-tab="ble" aria-pressed="true">Bluetooth</button>
+        <button type="button" data-tab="wifi" aria-pressed="false">Wi-Fi</button>
         <button type="button" data-tab="us" aria-pressed="false">Ultrasons</button>
       </div>
 
@@ -54,6 +57,18 @@ export function wavesScreen() {
           <ul class="list" id="b-list"><li class="empty">Lancez le scan pour lister les appareils Bluetooth à portée (environ 10 à 30 m).</li></ul>
         </div>
         <div class="note" id="b-support">${icons.info}<p></p></div>
+      </div>
+
+      <div id="w-wifi" class="stack" hidden>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="f-scan" type="button">${icons.wifi}<span>Analyser les réseaux Wi-Fi</span></button>
+        </div>
+        <div class="sensor-strip" id="f-summary"></div>
+        <div class="panel">
+          <div class="section-title"><h2>Réseaux à portée</h2><span class="small muted" id="f-count"></span></div>
+          <ul class="list" id="f-list"><li class="empty">Lancez l'analyse : les points d'accès de caméras et d'objets connectés apparaîtront en tête de liste.</li></ul>
+        </div>
+        <div class="note" id="f-note">${icons.info}<p></p></div>
       </div>
 
       <div id="w-us" class="stack" hidden>
@@ -84,7 +99,7 @@ export function wavesScreen() {
   }
 
   function supportText() {
-    if (settings.get('demo')) return '';
+    if (settings.get('demo') || isNative) return '';
     if (navigator.bluetooth?.requestLEScan) return '';
     if (navigator.bluetooth)
       return "<strong>Scan continu non activé.</strong> Chrome n'ouvre ici qu'une liste système des appareils proches. Pour un scan complet avec puissance du signal, ouvrez <code>chrome://flags/#enable-experimental-web-platform-features</code>, activez l'option et relancez Chrome.";
@@ -135,6 +150,10 @@ export function wavesScreen() {
       bleRunning(true);
       return;
     }
+    if (isNative) {
+      await bleStartNative();
+      return;
+    }
     if (!navigator.bluetooth) {
       setSupport(supportText());
       return;
@@ -163,8 +182,47 @@ export function wavesScreen() {
     }
   }
 
+  // Application Android : scan BLE natif en basse latence, relevé toutes les 300 ms.
+  async function bleStartNative() {
+    try {
+      const perm = await nativeCall('permissions', 'bluetooth');
+      if (!perm?.granted) {
+        toast('Autorisez « Appareils à proximité » pour que Sentinelle puisse scanner le Bluetooth.', { tone: 'danger', timeout: 5000 });
+        return;
+      }
+      const res = await nativeCall('ble.start');
+      if (!res?.ok) {
+        if (res?.reason === 'off') {
+          toast('Activez le Bluetooth puis relancez le scan.', { tone: 'danger' });
+          nativeCall('settings', 'bluetooth').catch(() => {});
+        } else toast("Ce téléphone n'a pas de Bluetooth basse consommation.", { tone: 'danger' });
+        return;
+      }
+    } catch {
+      toast('Impossible de lancer le scan Bluetooth.', { tone: 'danger' });
+      return;
+    }
+    ble.native = true;
+    ble.timer = setInterval(() => {
+      const r = nativePoll('ble');
+      if (!r) return;
+      for (const d of r.devices || []) onAdvert(fromNativeAdvert(d));
+      if (r.error && !ble.errorShown) {
+        ble.errorShown = true;
+        toast('Android a suspendu le scan (trop de relances rapprochées). Patientez 30 s puis relancez.', { timeout: 5000 });
+      }
+      renderDevices();
+    }, 300);
+    bleRunning(true);
+  }
+
   function bleStop() {
     clearInterval(ble.timer);
+    if (ble.native) {
+      ble.native = false;
+      ble.errorShown = false;
+      nativeCall('ble.stop').catch(() => {});
+    }
     if (ble.scan) {
       ble.scan.stop();
       navigator.bluetooth.removeEventListener('advertisementreceived', advHandler);
@@ -216,8 +274,7 @@ export function wavesScreen() {
           .join(' · ');
         return `<li class="device${ble.selected === d.id ? ' selected' : ''}" data-id="${escapeHtml(d.id)}" data-risk="${d.info.risk}" tabindex="0" role="button" aria-label="Pister ${escapeHtml(title)}">
           <span class="kind-badge">${kindIcons[d.info.kind] || icons.bluetooth}</span>
-          <div class="grow"><div class="title">${escapeHtml(title)}</div><div class="sub">${escapeHtml(sub)}</div></div>
-          ${d.info.risk === 'high' ? `<span class="chip" data-tone="danger">${KINDS[d.info.kind].label}</span>` : ''}
+          <div class="grow"><div class="title">${escapeHtml(title)}</div>${d.info.risk === 'high' ? `<div class="tags"><span class="chip" data-tone="danger">${KINDS[d.info.kind].label}</span></div>` : ''}<div class="sub">${escapeHtml(sub)}</div></div>
           <span class="bars" aria-hidden="true">${bars}</span>
         </li>`;
       })
@@ -455,13 +512,113 @@ export function wavesScreen() {
 
   $('#u-toggle', root).addEventListener('click', () => (us.running ? usStop() : usStart()));
 
+  // ───── Wi-Fi ─────
+  const wifi = { scanning: false, timer: 0 };
+  const netIcons = { camera: icons.camera, iot: icons.chip, hidden: icons.eye, router: icons.wifi };
+
+  function wifiNote() {
+    const p = $('#f-note p', root);
+    if (isNative || settings.get('demo')) {
+      p.innerHTML =
+        "<strong>Limite :</strong> seules les caméras qui diffusent leur propre réseau (mode configuration, point d'accès direct) apparaissent ici. Une caméra déjà branchée sur la box de l'hôte reste invisible ; vérifiez alors les appareils connectés dans l'interface de la box. Android autorise 4 analyses toutes les 2 minutes : la liste se met à jour toutes les 35 s.";
+    } else {
+      p.innerHTML =
+        "<strong>Analyse Wi-Fi réservée à l'application Android.</strong> Les navigateurs n'ont pas accès aux réseaux alentour. Installez l'APK Sentinelle (Réglages), ou ouvrez la liste des réseaux de votre téléphone : des noms comme « IPC », « CAM », « HD- », « V380 », « Tapo_C » ou « EZVIZ » doivent attirer l'attention.";
+    }
+  }
+
+  function renderWifi(list, fresh) {
+    const ranked = rankNetworks(list);
+    const cams = ranked.filter((n) => n.info.kind === 'camera').length;
+    const iot = ranked.filter((n) => n.info.kind === 'iot').length;
+    $('#f-summary', root).innerHTML = [
+      `<span class="chip" data-tone="accent">${ranked.length} réseau${ranked.length > 1 ? 'x' : ''}</span>`,
+      `<span class="chip" data-tone="${cams ? 'danger' : 'ok'}">${cams} caméra${cams > 1 ? 's' : ''} possible${cams > 1 ? 's' : ''}</span>`,
+      iot ? `<span class="chip" data-tone="warn">${iot} objet${iot > 1 ? 's' : ''} connecté${iot > 1 ? 's' : ''}</span>` : '',
+    ].join('');
+    $('#f-count', root).textContent = fresh ? "à l'instant" : 'résultats en mémoire';
+    const ul = $('#f-list', root);
+    if (!ranked.length) {
+      ul.innerHTML = `<li class="empty">Aucun réseau détecté. Vérifiez que le Wi-Fi et la localisation sont activés.</li>`;
+      return;
+    }
+    ul.innerHTML = ranked
+      .map((n) => {
+        const ch = channel(n.frequency);
+        const level = rssiToLevel(n.level);
+        const bars = [0.15, 0.4, 0.65, 0.85].map((t) => `<i class="${level >= t ? 'on' : ''}"></i>`).join('');
+        const sub = [n.info.vendor, `${band(n.frequency)}${ch ? ` · canal ${ch}` : ''}`, security(n.capabilities), `${n.level} dBm · ${signalLabel(n.level)}`].filter(Boolean).join(' · ');
+        const why = n.info.reasons.length ? `<div class="sub">${escapeHtml(n.info.reasons.join(', '))}</div>` : '';
+        const chip = n.info.risk === 'low' ? '' : `<div class="tags"><span class="chip" data-tone="${n.info.risk === 'high' ? 'danger' : 'warn'}">${escapeHtml(n.info.label)}</span></div>`;
+        return `<li class="device static" data-risk="${n.info.risk}">
+          <span class="kind-badge">${netIcons[n.info.kind]}</span>
+          <div class="grow"><div class="title">${escapeHtml(n.info.ssid || 'Réseau masqué')}</div>${chip}<div class="sub">${escapeHtml(sub)}</div>${why}</div>
+          <span class="bars" aria-hidden="true">${bars}</span>
+        </li>`;
+      })
+      .join('');
+  }
+
+  function setScanButton(busy) {
+    const b = $('#f-scan', root);
+    b.disabled = busy;
+    b.innerHTML = busy ? `${icons.wifi}<span>Analyse en cours…</span>` : `${icons.wifi}<span>Analyser les réseaux Wi-Fi</span>`;
+  }
+
+  async function wifiScan() {
+    if (wifi.scanning) return;
+    if (settings.get('demo')) {
+      renderWifi(createDemoWifi(), true);
+      return;
+    }
+    if (!isNative) {
+      toast("L'analyse Wi-Fi nécessite l'application Android.");
+      return;
+    }
+    wifi.scanning = true;
+    setScanButton(true);
+    try {
+      const perm = await nativeCall('permissions', 'wifi');
+      if (!perm?.granted) {
+        toast('Autorisez la position précise et « Appareils à proximité » : Android les exige pour lister les réseaux Wi-Fi.', { tone: 'danger', timeout: 6000 });
+        return;
+      }
+      const r = await nativeCall('wifi.scan');
+      if (r?.reason === 'location_off') {
+        toast('Activez la localisation du téléphone : sans elle, Android ne liste aucun réseau.', { tone: 'danger', timeout: 5000 });
+        nativeCall('settings', 'location').catch(() => {});
+      }
+      renderWifi(r?.results || [], !!r?.fresh);
+    } catch {
+      toast("L'analyse Wi-Fi a échoué.", { tone: 'danger' });
+    } finally {
+      wifi.scanning = false;
+      setScanButton(false);
+    }
+  }
+
+  function wifiAuto(on) {
+    clearInterval(wifi.timer);
+    wifi.timer = 0;
+    if (on && (isNative || settings.get('demo'))) {
+      wifiScan();
+      wifi.timer = setInterval(wifiScan, 35000);
+    }
+  }
+
+  $('#f-scan', root).addEventListener('click', wifiScan);
+
   // ───── Onglets ─────
+  let currentTab = 'ble';
   function showTab(tab) {
+    currentTab = tab;
     root.querySelectorAll('#w-tabs button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === tab)));
     $('#w-ble', root).hidden = tab !== 'ble';
+    $('#w-wifi', root).hidden = tab !== 'wifi';
     $('#w-us', root).hidden = tab !== 'us';
     if (tab !== 'ble' && ble.running) bleStop();
     if (tab !== 'us' && us.running) usStop();
+    wifiAuto(tab === 'wifi');
   }
   $('#w-tabs', root).addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tab]');
@@ -474,9 +631,12 @@ export function wavesScreen() {
       ble.meter = hiDpiCanvas($('#b-meter', root));
       us.view = hiDpiCanvas($('#u-fall', root));
       setSupport(supportText());
+      wifiNote();
       renderDevices();
+      if (currentTab === 'wifi') wifiAuto(true);
     },
     unmount() {
+      wifiAuto(false);
       if (ble.running) bleStop();
       if (us.running) usStop();
       ble.meter?.dispose();

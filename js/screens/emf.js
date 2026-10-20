@@ -1,6 +1,7 @@
 import { Clicker, unlockAudio, vibrate } from '../core/audio.js';
 import { EmfMeter, LEVELS, gaugeRatio } from '../core/emf.js';
 import { icons } from '../core/icons.js';
+import { isNative, nativeCall, nativeInfo, nativePoll } from '../core/native.js';
 import { settings } from '../core/store.js';
 import { $, animationLoop, el, hiDpiCanvas, nf, themeColors, toast } from '../core/ui.js';
 import { createDemoMagnetometer } from '../sim/demo.js';
@@ -99,6 +100,29 @@ export function emfScreen() {
       running(true);
       return;
     }
+    if (isNative) {
+      if (!nativeInfo()?.magnetometer) {
+        showSupport("<strong>Aucun magnétomètre</strong> n'a été trouvé sur ce téléphone.");
+        return;
+      }
+      try {
+        await nativeCall('magnetometer.start');
+      } catch {
+        showSupport("Le magnétomètre n'a pas pu démarrer.");
+        return;
+      }
+      // Capteur natif lu à 40 Hz ; on ignore les lectures déjà traitées.
+      st.lastT = 0;
+      st.nativeTimer = setInterval(() => {
+        const m = nativePoll('magnetometer');
+        if (!m || m.t === st.lastT) return;
+        st.lastT = m.t;
+        st.accuracy = m.accuracy;
+        onReading(m.x, m.y, m.z);
+      }, 25);
+      running(true);
+      return;
+    }
     if (!('Magnetometer' in window)) {
       showSupport(unsupportedText());
       return;
@@ -125,6 +149,11 @@ export function emfScreen() {
 
   function stop() {
     clearInterval(st.demoTimer);
+    if (st.nativeTimer) {
+      clearInterval(st.nativeTimer);
+      st.nativeTimer = 0;
+      nativeCall('magnetometer.stop').catch(() => {});
+    }
     st.sensor?.stop();
     st.sensor = null;
     clicker.stop();
@@ -265,7 +294,12 @@ export function emfScreen() {
     const lvl = $('#e-level', root);
     lvl.textContent = meter.calibrating ? 'Calibrage…' : r.level.label;
     lvl.style.color = `var(--${{ ok: 'ok', warn: 'warn', danger: 'danger' }[levelTone[r.level.key]]})`;
-    $('#e-hint', root).textContent = meter.calibrating ? 'Gardez le téléphone immobile, loin des appareils.' : r.level.hint;
+    // Android signale un capteur mal étalonné (précision 0 ou 1) : on guide l'utilisateur.
+    $('#e-hint', root).textContent = meter.calibrating
+      ? 'Gardez le téléphone immobile, loin des appareils.'
+      : st.accuracy != null && st.accuracy <= 1
+        ? 'Capteur à étalonner : décrivez lentement des 8 avec le téléphone.'
+        : r.level.hint;
     $('#e-total', root).textContent = `${f1.format(r.smoothed)} µT`;
     $('#e-base', root).textContent = meter.baseline != null ? `${f1.format(meter.baseline)} µT` : '—';
     $('#e-peak', root).textContent = `${f1.format(Math.abs(meter.peak))} µT`;
@@ -279,7 +313,8 @@ export function emfScreen() {
     }
     const now = performance.now();
     if (now - st.rateAt > 1000) {
-      $('#e-rate', root).textContent = `${Math.round((st.readings * 1000) / (now - st.rateAt))} mesures/s`;
+      const model = nativeInfo()?.model;
+      $('#e-rate', root).textContent = `${model ? `${model} · ` : ''}${Math.round((st.readings * 1000) / (now - st.rateAt))} mesures/s`;
       st.readings = 0;
       st.rateAt = now;
     }
@@ -310,7 +345,7 @@ export function emfScreen() {
       });
       drawGauge(performance.now());
       drawSpark();
-      if (!('Magnetometer' in window) && !settings.get('demo')) showSupport(unsupportedText());
+      if (!isNative && !('Magnetometer' in window) && !settings.get('demo')) showSupport(unsupportedText());
     },
     unmount() {
       if (st.running) stop();

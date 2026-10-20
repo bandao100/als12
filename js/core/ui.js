@@ -1,4 +1,5 @@
 // Petits utilitaires d'interface : échappement, toasts, canvas net, couleurs du thème.
+import { isNative, nativeCall } from './native.js';
 
 export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -89,6 +90,12 @@ export function invalidateTheme() {
 
 // Maintient l'écran allumé pendant la surveillance.
 export function createWakeLock() {
+  if (isNative) {
+    return {
+      on: () => nativeCall('keepScreenOn', true).catch(() => {}),
+      off: () => nativeCall('keepScreenOn', false).catch(() => {}),
+    };
+  }
   let lock = null;
   let wanted = false;
   const acquire = async () => {

@@ -1,6 +1,11 @@
 # Sentinelle
 
-Détecteur de poche pour smartphone : **radars routiers**, **caméras cachées**, **traceurs Bluetooth**, **champs magnétiques** et **ultrasons**. Application web progressive (PWA) installable sur Android et iPhone, sans compte, sans publicité, utilisable hors ligne.
+Détecteur de poche pour smartphone : **radars routiers**, **caméras cachées**, **traceurs Bluetooth**, **réseaux Wi-Fi de caméras**, **champs magnétiques** et **ultrasons**. Sans compte, sans publicité, utilisable hors ligne.
+
+Deux façons de l'utiliser :
+
+- **Application Android (APK)**, recommandée sur Samsung Galaxy S25 Ultra et tout Android 8 ou plus récent : tous les capteurs du téléphone, sans réglage caché.
+- **Application web (PWA)**, sur Android et iPhone : rien à installer, mais le navigateur limite l'accès à certains capteurs.
 
 ## Les quatre détecteurs
 
@@ -9,14 +14,14 @@ Détecteur de poche pour smartphone : **radars routiers**, **caméras cachées**
 | **Radars** | Radars fixes, feux rouges, tronçons, radars mobiles signalés, caméras de vidéosurveillance | GPS + positions OpenStreetMap (Overpass) + vos signalements. Alerte vocale anticipée selon la vitesse, cône « devant moi », alerte de survitesse. |
 | **Caméras** | Objectifs de caméras cachées, LED infrarouges de vision nocturne | Analyse d'image en direct (≈ 20 im/s) : points petits, compacts et très contrastés, suivis image par image. *Contrôle flash* : la lampe est coupée un instant, un reflet d'objectif disparaît, une LED reste. |
 | **Champs** | Électronique alimentée, aimants, transformateurs | Magnétomètre, écart au champ terrestre en µT, calibrage, jauge logarithmique, crépitement façon compteur Geiger. |
-| **Ondes** | Appareils Bluetooth, traceurs AirTag / SmartTag / Tile / Google Localiser, caméras BLE, ultrasons 15–24 kHz | Annonces BLE (identifiants constructeurs et services), RSSI filtré (Kalman) et mode pistage « chaud / froid » ; spectrogramme du micro et détection de tonalités persistantes. |
+| **Ondes** | Appareils Bluetooth, traceurs AirTag / SmartTag / Tile / Google Localiser, caméras BLE, points d'accès Wi-Fi de caméras, ultrasons 15–24 kHz | Annonces BLE (identifiants constructeurs et services), RSSI filtré (Kalman) et mode pistage « chaud / froid » ; réseaux Wi-Fi classés par nom typique de caméra et fabricant du matériel (Hikvision, Dahua, puces Espressif…) ; spectrogramme du micro et tonalités persistantes. |
 
 L'accueil propose aussi un **protocole d'inspection de chambre** en 8 étapes et un tableau de ce qu'un téléphone peut, ou ne peut pas, détecter.
 
 ## Ce qu'un téléphone ne peut pas faire
 
 - **Capter les ondes radar** : les cinémomètres émettent en bande K / Ka (24 à 35 GHz), qu'aucune antenne de smartphone ne reçoit. Sentinelle se fonde donc sur la position connue des radars.
-- **Scanner le Wi-Fi depuis une page web** : les navigateurs ne l'autorisent pas. La liste des réseaux reste consultable dans les réglages du téléphone (noms suspects : `IPC`, `CAM`, `HD-`, `YI`, `Tapo`, `EZVIZ`, `Hikvision`).
+- **Scanner le Wi-Fi depuis une page web** : les navigateurs ne l'autorisent pas, d'où l'application Android. Même avec elle, seules les caméras qui diffusent leur propre réseau apparaissent ; une caméra branchée sur la box de l'hôte reste invisible.
 - **Repérer un micro GSM / 4G** : il faut un détecteur RF dédié.
 
 ## Cadre légal
@@ -25,17 +30,63 @@ En France (décret n° 2012-3 du 3 janvier 2012) et dans plusieurs pays, les dé
 
 ## Compatibilité
 
-| Fonction | Chrome Android | Safari iPhone |
-| --- | --- | --- |
-| Radars (GPS, voix) | Oui | Oui |
-| Caméra, reflet et infrarouge | Oui, flash piloté | Oui, sans pilotage du flash |
-| Magnétomètre | Après activation de `chrome://flags/#enable-generic-sensor-extra-classes` | Non |
-| Scan Bluetooth complet | Après activation de `chrome://flags/#enable-experimental-web-platform-features` | Non |
-| Ultrasons | Oui | Oui |
+| Fonction | Application Android | Chrome Android | Safari iPhone |
+| --- | --- | --- | --- |
+| Radars (GPS, voix) | Oui, voix du téléphone en mode guidage | Oui | Oui |
+| Cap au repos | Capteur de rotation fusionné | Boussole du navigateur | Boussole du navigateur |
+| Caméra, reflet et infrarouge | Oui | Oui, flash piloté | Oui, sans pilotage du flash |
+| Magnétomètre | Oui, avec alerte d'étalonnage | Après activation de `chrome://flags/#enable-generic-sensor-extra-classes` | Non |
+| Scan Bluetooth complet | Oui | Après activation de `chrome://flags/#enable-experimental-web-platform-features` | Non |
+| Analyse Wi-Fi | Oui | Non | Non |
+| Ultrasons | Oui | Oui | Oui |
 
 Les capteurs exigent une page servie en **HTTPS**. Un **mode démonstration** (Réglages) remplace tous les capteurs par des données simulées, clairement signalées.
 
-## Installation
+## Application Android (Samsung Galaxy S25 Ultra)
+
+### Installer l'APK
+
+1. Sur le téléphone, ouvrez <https://github.com/bandao100/als12/releases/download/android/sentinelle.apk> (ou la page *Releases* du dépôt, version « Sentinelle pour Android »).
+2. Ouvrez le fichier téléchargé. One UI demande d'autoriser l'installation depuis cette source (*Internet* ou *Mes fichiers*) : acceptez, revenez, puis touchez **Installer**.
+3. Si Play Protect affiche un avertissement (application hors Play Store), choisissez *Plus de détails › Installer quand même*.
+4. Au premier usage de chaque détecteur, Android demande l'autorisation correspondante.
+
+L'APK est recompilé et republié à chaque fusion sur `master` (workflow `.github/workflows/android.yml`) ; chaque demande de fusion produit aussi un APK de test dans les *artefacts* du workflow.
+
+### Capteurs utilisés
+
+| Détecteur | Capteur du téléphone | Autorisation Android |
+| --- | --- | --- |
+| Radars | GNSS (GPS, Galileo, GLONASS, BeiDou), capteur de rotation pour le cap à l'arrêt, synthèse vocale | Position |
+| Caméras | Caméra arrière et flash, caméra avant pour l'infrarouge | Appareil photo |
+| Champs | Magnétomètre (µT), état d'étalonnage | Aucune |
+| Bluetooth | Bluetooth 5 basse consommation, annonces étendues comprises | Appareils à proximité, position précise |
+| Wi-Fi | Analyse Wi-Fi 2,4 / 5 / 6 GHz | Appareils à proximité, position précise (la localisation doit être activée) |
+| Ultrasons | Micro, 48 kHz | Micro |
+
+L'écran reste allumé pendant la surveillance radar et les alertes vocales baissent le volume de la musique. Les capteurs sont coupés dès que l'application passe en arrière-plan.
+
+### Signature des mises à jour
+
+Sans clé fournie, l'APK est signé avec une clé de débogage propre à chaque compilation : pour installer une nouvelle version, désinstallez d'abord l'ancienne (les réglages et signalements sont alors perdus). Pour des mises à jour directes, créez une clé une fois pour toutes :
+
+```bash
+keytool -genkeypair -v -keystore sentinelle.keystore -alias sentinelle -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 sentinelle.keystore
+```
+
+puis ajoutez dans *Settings › Secrets and variables › Actions* : `ANDROID_KEYSTORE_BASE64` (la sortie de `base64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`sentinelle`) et `ANDROID_KEY_PASSWORD`. Gardez le fichier `sentinelle.keystore` en lieu sûr, hors du dépôt.
+
+### Compiler soi-même
+
+```bash
+cd android
+./gradlew assembleRelease   # nécessite le SDK Android (ANDROID_HOME) et Java 17
+```
+
+L'application web est copiée automatiquement dans l'APK ; elle y est servie sous `https://appassets.androidplatform.net/` pour que caméra, micro et position restent accessibles.
+
+## Application web
 
 ### En ligne, avec GitHub Pages
 
@@ -70,8 +121,15 @@ js/core/                                 algorithmes purs, testés sous Node
   emf.js          magnétomètre : référence, écart, niveaux
 js/services/radar-service.js             GPS, cache des radars, alertes vocales
 js/screens/                              un module par écran
+  wifi.js         réseaux Wi-Fi : noms de caméras, fabricants, bande et canal
+  native.js       pont vers l'application Android
 js/sim/demo.js                           sources simulées du mode démo
 tests/                                   tests node:test
+android/                                 application Android (Java, sans dépendance)
+  app/src/main/java/…/MainActivity.java  WebView, autorisations, barres système
+  NativeBridge.java                      pont JavaScript ↔ capteurs
+  SensorHub.java, BleScanner.java,       magnétomètre et boussole, Bluetooth,
+  WifiScanner.java, Speaker.java         Wi-Fi, voix
 ```
 
 ## Confidentialité
@@ -80,6 +138,6 @@ Images, sons et mesures sont analysés sur l'appareil et ne sont jamais enregist
 
 ## Pistes d'évolution
 
-- Version native (Capacitor) pour le scan Wi-Fi et un magnétomètre accessible sans réglage.
+- Surveillance radar écran éteint (service de premier plan Android).
 - Analyse RF réelle avec une clé RTL-SDR branchée en USB-C (WebUSB), pour repérer micros GSM et émetteurs.
 - Partage communautaire des radars mobiles signalés.

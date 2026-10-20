@@ -22,7 +22,7 @@ const DETECTION = [
   ['Objectifs de caméra', 'Oui', 'Rétro-réflexion du flash, suivie image par image'],
   ['LED infrarouges (850–940 nm)', 'Souvent', 'Caméra avant, rarement filtrée en infrarouge'],
   ['Bluetooth (2,4 GHz)', 'Oui, Chrome Android', 'Annonces BLE et puissance du signal'],
-  ['Wi-Fi (2,4 / 5 GHz)', "Pas depuis le Web", 'Liste des réseaux dans les réglages du téléphone'],
+  ['Wi-Fi (2,4 / 5 / 6 GHz)', { web: 'Pas depuis le Web', app: 'Oui, application Android' }, "Points d'accès de caméras : nom du réseau et fabricant"],
   ['GSM / 4G (micros espions)', 'Non', 'Détecteur RF dédié nécessaire'],
   ['Champs magnétiques', 'Oui', 'Magnétomètre (capteur de la boussole)'],
   ['Ultrasons (17–24 kHz)', 'En partie', "Micro, jusqu'à 20–22 kHz selon le modèle"],
@@ -64,7 +64,7 @@ export function homeScreen() {
         <a class="module" href="#ondes">
           <span class="module-icon">${icons.waves}</span>
           <h3>Radio et ultrasons</h3>
-          <p>Appareils Bluetooth, traceurs AirTag, SmartTag ou Tile, et émissions ultrasonores.</p>
+          <p>Traceurs AirTag, SmartTag ou Tile, réseaux Wi-Fi de caméras et émissions ultrasonores.</p>
           <span class="chip" id="h-waves-status">Bluetooth</span>
         </a>
       </div>
@@ -87,7 +87,7 @@ export function homeScreen() {
       <div class="table-wrap">
         <table>
           <thead><tr><th>Signal</th><th>Détectable</th><th>Méthode</th></tr></thead>
-          <tbody>${DETECTION.map(([a, b, c]) => `<tr><td>${a}</td><td><strong>${b}</strong></td><td class="muted">${c}</td></tr>`).join('')}</tbody>
+          <tbody>${DETECTION.map(([a, b, c]) => `<tr><td>${a}</td><td><strong>${typeof b === 'string' ? b : capabilities().native ? b.app : b.web}</strong></td><td class="muted">${c}</td></tr>`).join('')}</tbody>
         </table>
       </div>
     </section>`);
@@ -134,11 +134,14 @@ export function homeScreen() {
     const chip = (tone, label) => `<span class="chip" data-tone="${tone}">${label}</span>`;
     const chips = [];
     if (demo) chips.push(chip('report', 'Mode démo actif'));
+    if (cap.native) chips.push(chip('accent', `Application Android${cap.model ? ` · ${cap.model}` : ''}`));
     if (!cap.secure) chips.push(chip('danger', 'Page non sécurisée : capteurs bloqués'));
     chips.push(geo === 'absent' ? chip('danger', 'GPS absent') : geo === 'denied' ? chip('danger', 'GPS refusé') : chip(geo === 'granted' ? 'ok' : 'accent', geo === 'granted' ? 'GPS autorisé' : 'GPS disponible'));
     chips.push(chip(cap.camera ? 'ok' : 'danger', cap.camera ? 'Caméra' : 'Caméra absente'));
     chips.push(chip(cap.magnetometer ? 'ok' : 'warn', cap.magnetometer ? 'Magnétomètre' : 'Magnétomètre à activer'));
     chips.push(chip(cap.bleScan ? 'ok' : cap.bluetooth ? 'warn' : 'danger', cap.bleScan ? 'Scan Bluetooth' : cap.bluetooth ? 'Bluetooth limité' : 'Bluetooth absent'));
+    if (cap.native) chips.push(chip(cap.wifiScan ? 'ok' : 'danger', cap.wifiScan ? 'Scan Wi-Fi' : 'Wi-Fi absent'));
+    if (cap.compass) chips.push(chip('ok', 'Boussole'));
     chips.push(chip(cap.microphone ? 'ok' : 'danger', cap.microphone ? 'Micro' : 'Micro absent'));
     $('#h-sensors', root).innerHTML = chips.join('');
 
@@ -149,7 +152,7 @@ export function homeScreen() {
     };
     set('#h-cam-status', demo || cap.camera ? 'ok' : 'danger', demo ? 'Démo' : cap.camera ? 'Caméra prête' : 'Caméra absente');
     set('#h-emf-status', demo || cap.magnetometer ? 'ok' : 'warn', demo ? 'Démo' : cap.magnetometer ? 'Capteur prêt' : 'Capteur à activer');
-    set('#h-waves-status', demo || cap.bleScan ? 'ok' : cap.bluetooth || cap.microphone ? 'warn' : 'danger', demo ? 'Démo' : cap.bleScan ? 'Scan complet' : cap.bluetooth ? 'Bluetooth limité' : cap.microphone ? 'Ultrasons seuls' : 'Indisponible');
+    set('#h-waves-status', demo || cap.bleScan ? 'ok' : cap.bluetooth || cap.microphone ? 'warn' : 'danger', demo ? 'Démo' : cap.wifiScan ? 'Bluetooth et Wi-Fi' : cap.bleScan ? 'Scan complet' : cap.bluetooth ? 'Bluetooth limité' : cap.microphone ? 'Ultrasons seuls' : 'Indisponible');
     renderRadar();
   }
 

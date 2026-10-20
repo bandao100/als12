@@ -140,9 +140,10 @@ export function identifyDevice(adv = {}) {
 }
 
 // Modèle log-distance : d = 10^((P1m - RSSI) / (10·n)).
-export function estimateDistance(rssi, txPower = -59, n = 2.2) {
+// txPower est la puissance d'émission annoncée ; à 1 m on reçoit environ 41 dB de moins.
+export function estimateDistance(rssi, txPower = null, n = 2.2) {
   if (!Number.isFinite(rssi)) return null;
-  const ref = Number.isFinite(txPower) && txPower < 0 ? txPower : -59;
+  const ref = Number.isFinite(txPower) ? Math.min(-30, Math.max(-80, txPower - 41)) : -59;
   return Math.min(80, Math.max(0.1, 10 ** ((ref - rssi) / (10 * n))));
 }
 

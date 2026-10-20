@@ -400,6 +400,7 @@ main.view {
   font-size: var(--step-0);
   letter-spacing: 0.04em;
   white-space: nowrap;
+  text-decoration: none;
   transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
@@ -716,6 +717,13 @@ select {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.list .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 3px 2px;
 }
 
 .list .sub {
@@ -1399,6 +1407,10 @@ th {
 
 .device {
   cursor: pointer;
+}
+
+.device.static {
+  cursor: default;
 }
 
 .device[data-risk='high'] .kind-badge {

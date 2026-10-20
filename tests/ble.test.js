@@ -37,6 +37,8 @@ test('appareil inconnu', () => {
 
 test('distance estimée et filtre RSSI', () => {
   assert.ok(Math.abs(estimateDistance(-59) - 1) < 1e-9);
+  assert.ok(Math.abs(estimateDistance(-41, 0) - 1) < 1e-9, 'puissance annoncée de 0 dBm');
+  assert.ok(estimateDistance(-60, 4) > estimateDistance(-60, -12), 'un émetteur plus puissant paraît plus proche');
   assert.ok(estimateDistance(-80) > 5);
   const f = new RssiFilter();
   let v;

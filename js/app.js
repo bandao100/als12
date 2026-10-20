@@ -1,5 +1,6 @@
 // Point d'entrée : navigation entre écrans, thème, mode démo, installation.
 import { icons } from './core/icons.js';
+import { isNative, nativeCall } from './core/native.js';
 import { settings } from './core/store.js';
 import { $, invalidateTheme } from './core/ui.js';
 import { cameraScreen } from './screens/camera.js';
@@ -70,8 +71,12 @@ function applyTheme() {
     themeOwned = false;
   }
   invalidateTheme();
+  const cs = getComputedStyle(document.documentElement);
+  const panel = cs.getPropertyValue('--panel').trim();
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--panel').trim();
+  if (meta) meta.content = panel;
+  // Dans l'application Android, les barres d'état et de navigation suivent le thème.
+  if (isNative) nativeCall('chrome', panel, cs.colorScheme.trim() === 'light').catch(() => {});
 }
 
 function renderDemoBanner() {
@@ -124,7 +129,7 @@ function boot() {
     deferredInstall = e;
   });
 
-  if ('serviceWorker' in navigator && window.isSecureContext && !window.SENTINELLE_DEMO) {
+  if ('serviceWorker' in navigator && window.isSecureContext && !window.SENTINELLE_DEMO && !isNative) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 }
