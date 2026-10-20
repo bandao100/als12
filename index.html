@@ -50,7 +50,13 @@
       <div class="wrap hero-grid">
         <div class="hero-text">
           <p class="eyebrow">Multiple Service Company</p>
-          <h1>Un seul interlocuteur pour tous vos projets.</h1>
+          <h1>
+            <span class="sr-only">Un seul interlocuteur pour tous vos projets.</span>
+            <span aria-hidden="true">
+              <span class="h1-line">Un seul interlocuteur</span>
+              <span class="h1-line">pour <span class="rotator" id="rotator"><span class="rotator-item is-current" data-key="all">tous vos projets.</span><span class="rotator-item" data-key="traduction" data-family="conseil">vos traductions.</span><span class="rotator-item" data-key="btp" data-family="tech">vos chantiers.</span><span class="rotator-item" data-key="materiel" data-family="tech">votre matériel.</span><span class="rotator-item" data-key="reseaux" data-family="tech">vos réseaux.</span><span class="rotator-item" data-key="financement" data-family="conseil">vos financements.</span><span class="rotator-item" data-key="juridique" data-family="conseil">vos démarches.</span></span></span>
+            </span>
+          </h1>
           <p class="lead">ASK'N CO réunit six métiers sous un même toit, de la traduction aux travaux, du matériel au financement, et suit votre dossier du premier contact à la livraison.</p>
           <div class="hero-actions">
             <a class="btn" href="#services">Voir nos services</a>
@@ -78,40 +84,40 @@
             <desc id="hub-desc">ASK'N CO au centre, relié à six métiers : traduction, assistance juridique, intermédiation financière, bâtiment et travaux publics, fourniture de matériel, réseaux et télécommunications.</desc>
             <circle class="hub-ring" cx="220" cy="220" r="160"></circle>
 
-            <line class="hub-link is-conseil" x1="220" y1="220" x2="220" y2="60"></line>
-            <line class="hub-link is-tech" x1="220" y1="220" x2="358.6" y2="140"></line>
-            <line class="hub-link is-tech" x1="220" y1="220" x2="358.6" y2="300"></line>
-            <line class="hub-link is-tech" x1="220" y1="220" x2="220" y2="380"></line>
-            <line class="hub-link is-conseil" x1="220" y1="220" x2="81.4" y2="300"></line>
-            <line class="hub-link is-conseil" x1="220" y1="220" x2="81.4" y2="140"></line>
+            <line class="hub-link is-conseil" data-key="traduction" x1="220" y1="220" x2="220" y2="60"></line>
+            <line class="hub-link is-tech" data-key="btp" x1="220" y1="220" x2="358.6" y2="140"></line>
+            <line class="hub-link is-tech" data-key="materiel" x1="220" y1="220" x2="358.6" y2="300"></line>
+            <line class="hub-link is-tech" data-key="reseaux" x1="220" y1="220" x2="220" y2="380"></line>
+            <line class="hub-link is-conseil" data-key="financement" x1="220" y1="220" x2="81.4" y2="300"></line>
+            <line class="hub-link is-conseil" data-key="juridique" x1="220" y1="220" x2="81.4" y2="140"></line>
 
             <circle class="hub-core" cx="220" cy="220" r="58"></circle>
             <image href="assets/img/favicon.png" x="186" y="186" width="68" height="68"></image>
 
-            <g class="hub-node is-conseil">
+            <a class="hub-node is-conseil" href="#svc-traduction" data-key="traduction" style="--i: 0">
               <rect x="156" y="40" width="128" height="40" rx="20"></rect>
               <text x="220" y="65" text-anchor="middle">Traduction</text>
-            </g>
-            <g class="hub-node is-tech">
+            </a>
+            <a class="hub-node is-tech" href="#svc-btp" data-key="btp" style="--i: 1">
               <rect x="310.6" y="120" width="96" height="40" rx="20"></rect>
               <text x="358.6" y="145" text-anchor="middle">BTP</text>
-            </g>
-            <g class="hub-node is-tech">
+            </a>
+            <a class="hub-node is-tech" href="#svc-materiel" data-key="materiel" style="--i: 2">
               <rect x="300.6" y="280" width="116" height="40" rx="20"></rect>
               <text x="358.6" y="305" text-anchor="middle">Matériel</text>
-            </g>
-            <g class="hub-node is-tech">
+            </a>
+            <a class="hub-node is-tech" href="#svc-reseaux" data-key="reseaux" style="--i: 3">
               <rect x="132" y="360" width="176" height="40" rx="20"></rect>
               <text x="220" y="385" text-anchor="middle">Réseaux &amp; télécoms</text>
-            </g>
-            <g class="hub-node is-conseil">
+            </a>
+            <a class="hub-node is-conseil" href="#svc-financement" data-key="financement" style="--i: 4">
               <rect x="15.4" y="280" width="132" height="40" rx="20"></rect>
               <text x="81.4" y="305" text-anchor="middle">Financement</text>
-            </g>
-            <g class="hub-node is-conseil">
+            </a>
+            <a class="hub-node is-conseil" href="#svc-juridique" data-key="juridique" style="--i: 5">
               <rect x="23.4" y="120" width="116" height="40" rx="20"></rect>
               <text x="81.4" y="145" text-anchor="middle">Juridique</text>
-            </g>
+            </a>
           </svg>
           <figcaption class="hub-legend">
             <span class="legend-item is-conseil">Services et conseil</span>
@@ -124,7 +130,7 @@
     <!-- Services -->
     <section class="section" id="services" aria-labelledby="services-title">
       <div class="wrap">
-        <div class="section-head">
+        <div class="section-head" data-reveal>
           <p class="eyebrow">Nos services</p>
           <h2 id="services-title">Six métiers à votre service</h2>
           <p class="section-intro">Faites appel à un seul de nos métiers ou combinez-en plusieurs dans un même projet : nous coordonnons l'ensemble.</p>
@@ -137,7 +143,7 @@
         </div>
 
         <div class="services-grid">
-          <article class="service" data-domain="conseil">
+          <article class="service" id="svc-traduction" data-domain="conseil" data-reveal>
             <span class="tag tag-conseil">Services et conseil</span>
             <h3>Traduction et interprétariat</h3>
             <p>Traduction de vos documents officiels, techniques et commerciaux, et interprétation pour vos réunions et événements.</p>
@@ -149,7 +155,7 @@
             </ul>
           </article>
 
-          <article class="service" data-domain="conseil">
+          <article class="service" id="svc-juridique" data-domain="conseil" data-reveal>
             <span class="tag tag-conseil">Services et conseil</span>
             <h3>Assistance juridique</h3>
             <p>Accompagnement dans vos démarches juridiques et administratives, pour les entreprises comme pour les particuliers.</p>
@@ -161,7 +167,7 @@
             </ul>
           </article>
 
-          <article class="service" data-domain="conseil">
+          <article class="service" id="svc-financement" data-domain="conseil" data-reveal>
             <span class="tag tag-conseil">Services et conseil</span>
             <h3>Intermédiation financière</h3>
             <p>Mise en relation avec les banques, les institutions de microfinance et les investisseurs pour financer vos projets.</p>
@@ -173,7 +179,7 @@
             </ul>
           </article>
 
-          <article class="service" data-domain="tech">
+          <article class="service" id="svc-btp" data-domain="tech" data-reveal>
             <span class="tag tag-tech">Travaux et équipements</span>
             <h3>Bâtiment et travaux publics</h3>
             <p>Construction, rénovation et aménagement de bâtiments et d'ouvrages, du devis à la réception des travaux.</p>
@@ -185,7 +191,7 @@
             </ul>
           </article>
 
-          <article class="service" data-domain="tech">
+          <article class="service" id="svc-materiel" data-domain="tech" data-reveal>
             <span class="tag tag-tech">Travaux et équipements</span>
             <h3>Fourniture de matériel</h3>
             <p>Approvisionnement en équipements et consommables pour les entreprises, les administrations et les chantiers.</p>
@@ -197,7 +203,7 @@
             </ul>
           </article>
 
-          <article class="service" data-domain="tech">
+          <article class="service" id="svc-reseaux" data-domain="tech" data-reveal>
             <span class="tag tag-tech">Travaux et équipements</span>
             <h3>Réseaux et télécommunications</h3>
             <p>Conception, installation et maintenance de vos infrastructures réseau et de communication.</p>
@@ -215,28 +221,28 @@
     <!-- Méthode -->
     <section class="section section-alt" id="methode" aria-labelledby="methode-title">
       <div class="wrap">
-        <div class="section-head">
+        <div class="section-head" data-reveal>
           <p class="eyebrow">Notre méthode</p>
           <h2 id="methode-title">Comment nous travaillons</h2>
           <p class="section-intro">Quel que soit le métier concerné, chaque demande suit les mêmes étapes.</p>
         </div>
-        <ol class="steps">
-          <li>
+        <ol class="steps" data-reveal>
+          <li style="--i: 0">
             <span class="step-n" aria-hidden="true">1</span>
             <h3>Écoute</h3>
             <p>Vous nous exposez votre besoin par téléphone, par e-mail ou lors d'un rendez-vous.</p>
           </li>
-          <li>
+          <li style="--i: 1">
             <span class="step-n" aria-hidden="true">2</span>
             <h3>Devis</h3>
             <p>Nous vous remettons une proposition détaillée avec les prestations, les délais et le coût.</p>
           </li>
-          <li>
+          <li style="--i: 2">
             <span class="step-n" aria-hidden="true">3</span>
             <h3>Réalisation</h3>
             <p>Nous coordonnons les équipes, les fournisseurs et les partenaires concernés.</p>
           </li>
-          <li>
+          <li style="--i: 3">
             <span class="step-n" aria-hidden="true">4</span>
             <h3>Livraison et suivi</h3>
             <p>Nous réceptionnons la prestation avec vous, puis restons disponibles pour le suivi.</p>
@@ -248,32 +254,32 @@
     <!-- Clients -->
     <section class="section" id="clients" aria-labelledby="clients-title">
       <div class="wrap">
-        <div class="section-head">
+        <div class="section-head" data-reveal>
           <p class="eyebrow">Nos clients</p>
           <h2 id="clients-title">Nous travaillons avec</h2>
         </div>
         <ul class="audiences">
-          <li>
+          <li data-reveal>
             <h3>Entreprises et PME</h3>
             <p>Travaux, équipements, réseaux et accompagnement administratif.</p>
           </li>
-          <li>
+          <li data-reveal>
             <h3>Administrations et services publics</h3>
             <p>Fournitures, aménagements et infrastructures de communication.</p>
           </li>
-          <li>
+          <li data-reveal>
             <h3>ONG et organisations internationales</h3>
             <p>Traduction, équipement et installation de bureaux.</p>
           </li>
-          <li>
+          <li data-reveal>
             <h3>Collectivités territoriales</h3>
             <p>Petits ouvrages, voirie et équipements publics.</p>
           </li>
-          <li>
+          <li data-reveal>
             <h3>Porteurs de projet</h3>
             <p>Création d'entreprise, montage de dossiers et recherche de financement.</p>
           </li>
-          <li>
+          <li data-reveal>
             <h3>Particuliers</h3>
             <p>Construction, traduction de documents et démarches juridiques.</p>
           </li>
@@ -284,7 +290,7 @@
     <!-- À propos -->
     <section class="band" id="apropos" aria-labelledby="apropos-title">
       <div class="wrap band-grid">
-        <div class="band-text">
+        <div class="band-text" data-reveal>
           <p class="eyebrow">À propos</p>
           <h2 id="apropos-title">Plusieurs métiers, une seule équipe</h2>
           <p>ASK'N CO est une entreprise multiservice. Vous confiez votre projet à un seul interlocuteur, qui mobilise les compétences nécessaires et coordonne chaque intervention.</p>
@@ -296,7 +302,7 @@
             <li><strong>Confidentialité.</strong> Vos documents juridiques et financiers restent protégés.</li>
           </ul>
         </div>
-        <div class="band-aside">
+        <div class="band-aside" data-reveal>
           <h3>Exemple : installer vos nouveaux bureaux</h3>
           <ol class="combo">
             <li><span class="combo-task">Formalités et bail commercial</span><span class="combo-service">Assistance juridique</span></li>
@@ -313,7 +319,7 @@
     <!-- Contact -->
     <section class="section" id="contact" aria-labelledby="contact-title">
       <div class="wrap contact-grid">
-        <div class="contact-info">
+        <div class="contact-info" data-reveal>
           <p class="eyebrow">Contact</p>
           <h2 id="contact-title">Parlons de votre projet</h2>
           <p>Décrivez votre besoin en quelques lignes. Nous revenons vers vous avec un devis adapté.</p>
@@ -334,7 +340,7 @@
           </dl>
         </div>
 
-        <form class="contact-form" id="contact-form" novalidate>
+        <form class="contact-form" id="contact-form" novalidate data-reveal>
           <div class="field-row">
             <div class="field">
               <label for="f-nom">Nom et prénom</label>
@@ -394,6 +400,10 @@
       <p class="footer-legal">© <span id="year">2026</span> ASK'N CO. Tous droits réservés.</p>
     </div>
   </footer>
+
+  <button class="to-top" type="button" id="to-top" aria-label="Revenir en haut de la page">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  </button>
 
   <script src="assets/js/main.js"></script>
 </body>
