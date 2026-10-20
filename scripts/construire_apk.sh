@@ -15,9 +15,9 @@ set -euo pipefail
 RACINE="$(cd "$(dirname "$0")/.." && pwd)"
 OUTILS="${OUTILS:-$HOME/.cache/aurore-outils}"
 BUILD="$RACINE/build"
-VERSION_CODE="${VERSION_CODE:-3}"
-VERSION_NOM="${VERSION_NOM:-1.2}"
-MIN_SDK=24
+VERSION_CODE="${VERSION_CODE:-4}"
+VERSION_NOM="${VERSION_NOM:-1.3}"
+MIN_SDK=21   # Android 5.0
 CIBLE_SDK=35
 
 # Clé de signature : la même à chaque version, pour pouvoir mettre l'application à jour
@@ -97,17 +97,21 @@ javac -nowarn --release 11 -encoding UTF-8 -cp "$ANDROID_JAR" -d "$BUILD/classes
 
 echo "4/5 Conversion DEX (d8)"
 mapfile -t CLASSES < <(find "$BUILD/classes" -name '*.class')
+# La bibliothèque Android ne contient pas java.lang : d8 reçoit aussi le JDK pour la rétrocompatibilité.
+JDK="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"
 java -cp "$OUTILS/r8lib.jar" com.android.tools.r8.D8 --release --min-api "$MIN_SDK" \
-  --lib "$ANDROID_JAR" --output "$BUILD/dex" "${CLASSES[@]}" 2>&1 \
+  --lib "$ANDROID_JAR" --lib "$JDK" --output "$BUILD/dex" "${CLASSES[@]}" 2>&1 \
   | grep -v '^Picked up JAVA_TOOL_OPTIONS' || true
 [ -f "$BUILD/dex/classes.dex" ] || { echo "Échec de d8" >&2; exit 1; }
 
 echo "5/5 Assemblage, alignement et signature"
 python3 "$RACINE/scripts/aligner_apk.py" "$BUILD/base.apk" "$BUILD/dex/classes.dex" "$BUILD/aligne.apk"
+# apksigner aligne lui-même les entrées non compressées (comme zipalign) en signant.
 java -jar "$APKSIGNER" sign --ks "$KEYSTORE" --ks-pass "pass:$KEYSTORE_MDP" --key-pass "pass:$KEYSTORE_MDP" \
   --ks-key-alias "$KEY_ALIAS" --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
   --out "$BUILD/Aurore.apk" "$BUILD/aligne.apk" 2>&1 | grep -v '^Picked up JAVA_TOOL_OPTIONS' || true
 java -jar "$APKSIGNER" verify "$BUILD/Aurore.apk" 2>/dev/null \
   || { echo "La signature de l'APK n'est pas valide" >&2; exit 1; }
+python3 "$RACINE/scripts/aligner_apk.py" --verifier "$BUILD/Aurore.apk"
 
 echo "APK prêt : $BUILD/Aurore.apk ($(du -h "$BUILD/Aurore.apk" | cut -f1))"

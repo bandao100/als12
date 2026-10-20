@@ -186,7 +186,17 @@ public class MainActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView vue, WebResourceRequest requete) {
-            Uri url = requete.getUrl();
+            return ouvrirLienExterne(requete.getUrl());
+        }
+
+        /** Android 5 et 6 appellent cette variante plutôt que la précédente. */
+        @Override
+        @SuppressWarnings("deprecation")
+        public boolean shouldOverrideUrlLoading(WebView vue, String url) {
+            return ouvrirLienExterne(Uri.parse(url));
+        }
+
+        private boolean ouvrirLienExterne(Uri url) {
             if (HOTE.equals(url.getHost())) {
                 return false;
             }

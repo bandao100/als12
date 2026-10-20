@@ -27,7 +27,7 @@ Les données sont enregistrées uniquement sur le téléphone (aucune connexion 
 
 1. Copier `Aurore.apk` sur le téléphone (WhatsApp, Drive, câble USB…).
 2. L'ouvrir et autoriser l'installation d'applications provenant de cette source si Android le demande.
-3. Android 7.0 ou plus récent.
+3. Android 5.0 ou plus récent.
 
 **Sauvegardes** : exporter régulièrement une sauvegarde (Plus → Exporter une sauvegarde).
 Une désinstallation efface les données du téléphone ; la sauvegarde permet de tout restaurer.
