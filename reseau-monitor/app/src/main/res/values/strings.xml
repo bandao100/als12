@@ -4,20 +4,48 @@
 
     <string name="status_on">Surveillance active</string>
     <string name="status_off">Surveillance arrêtée</string>
-    <string name="start">Démarrer la surveillance</string>
-    <string name="stop">Arrêter la surveillance</string>
-    <string name="hint_tap">Touchez un appareil pour le marquer comme connu ou à vérifier.</string>
+    <string name="start">Démarrer</string>
+    <string name="stop">Arrêter</string>
+    <string name="scan_now">Scanner maintenant</string>
+    <string name="interval_label">Intervalle entre deux scans</string>
+    <string name="interval_minutes">%d min</string>
+
+    <string name="state_idle">Aucun scan pour l\'instant.</string>
+    <string name="state_scanning">Scan en cours…</string>
+    <string name="state_no_wifi">Wi-Fi non connecté : aucun scan possible.</string>
+    <string name="state_last_scan">Dernier scan à %1$s · %2$s</string>
+    <plurals name="online_devices">
+        <item quantity="one">%d appareil en ligne</item>
+        <item quantity="other">%d appareils en ligne</item>
+    </plurals>
+
+    <string name="battery_text">Android peut suspendre la surveillance quand le téléphone est en veille. Autorisez l\'application à fonctionner en arrière-plan pour garder des scans réguliers.</string>
+    <string name="battery_button">Autoriser</string>
+
+    <string name="devices_header">Appareils (%d)</string>
+    <string name="hint_tap">Touchez un appareil pour le renommer, le marquer comme connu ou l\'oublier.</string>
     <string name="empty_devices">Aucun appareil détecté pour l\'instant. Connectez le téléphone au Wi-Fi, puis démarrez la surveillance.</string>
 
+    <string name="badge_online">● En ligne</string>
+    <string name="badge_offline">○ Hors ligne</string>
     <string name="badge_unknown">À vérifier</string>
     <string name="badge_trusted">Connu</string>
-    <string name="device_subtitle">%1$s · vu à %2$s</string>
+    <string name="seen_ago">vu %s</string>
+
+    <string name="action_rename">Renommer</string>
+    <string name="action_mark_trusted">Marquer comme connu</string>
+    <string name="action_mark_unknown">Marquer comme à vérifier</string>
+    <string name="action_forget">Oublier cet appareil</string>
+    <string name="rename_title">Nom de l\'appareil</string>
+    <string name="forget_title">Oublier cet appareil ?</string>
+    <string name="forget_message">%1$s sera retiré de la liste. S\'il réapparaît, il sera signalé comme nouvel appareil.</string>
+    <string name="forget">Oublier</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
 
     <string name="service_title">Surveillance réseau</string>
-    <string name="service_text">Analyse du Wi-Fi local toutes les 5 minutes</string>
     <string name="channel_service">Surveillance en cours</string>
     <string name="channel_alerts">Nouveaux appareils</string>
-
     <plurals name="alert_title">
         <item quantity="one">%d nouvel appareil détecté</item>
         <item quantity="other">%d nouveaux appareils détectés</item>

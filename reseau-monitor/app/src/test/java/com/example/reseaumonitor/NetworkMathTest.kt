@@ -51,6 +51,20 @@ class NetworkMathTest {
     }
 
     @Test
+    fun shortHostname_keepsFirstLabel() {
+        assertEquals("iphone-de-marie", shortHostname("iphone-de-marie.home", "192.168.1.20"))
+        assertEquals("imprimante", shortHostname("imprimante", "192.168.1.21"))
+    }
+
+    @Test
+    fun shortHostname_isEmpty_whenNothingWasResolved() {
+        assertEquals("", shortHostname(null, "192.168.1.20"))
+        assertEquals("", shortHostname("", "192.168.1.20"))
+        assertEquals("", shortHostname("192.168.1.20", "192.168.1.20"))
+        assertEquals("", shortHostname("10.0.0.1", "192.168.1.20"))
+    }
+
+    @Test
     fun parseArpTable_keepsOnlyCompleteEntries() {
         val lines = listOf(
             "IP address       HW type     Flags       HW address            Mask     Device",

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -23,10 +24,12 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.IOException
 import java.net.Inet4Address
@@ -37,12 +40,17 @@ import java.net.Inet4Address
  */
 class MonitorService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    // Réveille la boucle avant la fin de l'intervalle (scan immédiat, intervalle modifié).
+    private val wake = Channel<Unit>(Channel.CONFLATED)
     private var monitorJob: Job? = null
     private lateinit var store: DeviceStore
+    private lateinit var prefs: MonitorPrefs
 
     override fun onCreate() {
         super.onCreate()
         store = DeviceStore(this)
+        prefs = MonitorPrefs(this)
         createChannels()
         running = true
     }
@@ -54,11 +62,13 @@ class MonitorService : Service() {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
         )
 
-        if (monitorJob?.isActive != true) {
+        if (monitorJob?.isActive == true) {
+            if (intent?.action == ACTION_SCAN_NOW) wake.trySend(Unit)
+        } else {
             monitorJob = scope.launch {
                 while (isActive) {
                     runScan()
-                    delay(SCAN_INTERVAL_MS)
+                    withTimeoutOrNull(prefs.intervalMinutes * 60_000L) { wake.receive() }
                 }
             }
         }
@@ -70,19 +80,36 @@ class MonitorService : Service() {
     override fun onDestroy() {
         running = false
         scope.cancel()
+        if (prefs.scanState == ScanState.SCANNING) prefs.scanState = ScanState.IDLE
         super.onDestroy()
     }
 
     private suspend fun runScan() {
-        val (localIp, prefix) = localWifiAddress() ?: return
+        val network = localWifiAddress()
+        if (network == null) {
+            prefs.scanState = ScanState.NO_WIFI
+            updateServiceNotification()
+            return
+        }
+
+        prefs.scanState = ScanState.SCANNING
+        updateServiceNotification()
+
+        val (localIp, prefix) = network
         val seen = scanSubnet(localIp, prefix)
+        val now = System.currentTimeMillis()
 
         val newDevices = mutableListOf<Device>()
         store.update { known ->
-            val result = mergeScan(known, seen, System.currentTimeMillis())
+            val result = mergeScan(known, seen, now)
             newDevices += result.newDevices
             result.devices
         }
+
+        prefs.lastScanAt = now
+        prefs.onlineCount = seen.size
+        prefs.scanState = ScanState.DONE
+        updateServiceNotification()
 
         if (newDevices.isNotEmpty()) notifyNewDevices(newDevices)
     }
@@ -100,8 +127,8 @@ class MonitorService : Service() {
         return ip to address.prefixLength
     }
 
-    /** Retourne id -> ip pour chaque hôte qui répond sur le sous-réseau. */
-    private suspend fun scanSubnet(localIp: String, prefix: Int): Map<String, String> {
+    /** Retourne id -> hôte pour chaque hôte qui répond sur le sous-réseau. */
+    private suspend fun scanSubnet(localIp: String, prefix: Int): Map<String, SeenHost> {
         val hosts = hostsInSubnet(localIp, prefix).filter { it != localIp }
 
         val alive = coroutineScope {
@@ -111,8 +138,14 @@ class MonitorService : Service() {
                 .filterNotNull()
         }
 
+        val named = coroutineScope {
+            alive
+                .map { ip -> async(Dispatchers.IO) { SeenHost(ip, LanScanner.hostnameOf(ip)) } }
+                .awaitAll()
+        }
+
         val arp = withContext(Dispatchers.IO) { readArpTable() }
-        return alive.associate { ip -> (arp[ip] ?: ip) to ip }
+        return named.associateBy { host -> arp[host.ip] ?: host.ip }
     }
 
     /** Vide si le fichier n'est pas lisible : les appareils sont alors identifiés par leur IP. */
@@ -127,10 +160,13 @@ class MonitorService : Service() {
         if (!canPostNotifications()) return
 
         val title = resources.getQuantityString(R.plurals.alert_title, devices.size, devices.size)
+        val details = devices.joinToString("\n") { "${it.displayName} (${it.ip})" }
         val notification = NotificationCompat.Builder(this, CHANNEL_ALERTS)
-            .setSmallIcon(android.R.drawable.stat_sys_warning)
+            .setSmallIcon(R.drawable.ic_stat_network)
             .setContentTitle(title)
-            .setContentText(devices.joinToString(", ") { it.id })
+            .setContentText(details)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(details))
+            .setContentIntent(openAppIntent())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
@@ -138,9 +174,23 @@ class MonitorService : Service() {
         NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification)
     }
 
+    private fun updateServiceNotification() {
+        if (!canPostNotifications()) return
+        NotificationManagerCompat.from(this).notify(SERVICE_NOTIFICATION_ID, buildServiceNotification())
+    }
+
     private fun canPostNotifications(): Boolean =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    private fun openAppIntent(): PendingIntent =
+        PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
 
     private fun createChannels() {
         val manager = getSystemService(NotificationManager::class.java)
@@ -154,10 +204,12 @@ class MonitorService : Service() {
 
     private fun buildServiceNotification(): Notification =
         NotificationCompat.Builder(this, CHANNEL_SERVICE)
-            .setSmallIcon(android.R.drawable.ic_menu_search)
+            .setSmallIcon(R.drawable.ic_stat_network)
             .setContentTitle(getString(R.string.service_title))
-            .setContentText(getString(R.string.service_text))
+            .setContentText(scanSummary(prefs, running = true))
+            .setContentIntent(openAppIntent())
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .build()
 
     companion object {
@@ -166,13 +218,21 @@ class MonitorService : Service() {
         var running = false
             private set
 
+        private const val ACTION_SCAN_NOW = "com.example.reseaumonitor.SCAN_NOW"
         private const val CHANNEL_SERVICE = "surveillance"
         private const val CHANNEL_ALERTS = "alertes"
         private const val SERVICE_NOTIFICATION_ID = 1
-        private const val SCAN_INTERVAL_MS = 5 * 60 * 1000L
 
         fun start(context: Context) {
             ContextCompat.startForegroundService(context, Intent(context, MonitorService::class.java))
+        }
+
+        /** Lance un scan tout de suite ; démarre le service s'il ne tourne pas. */
+        fun scanNow(context: Context) {
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, MonitorService::class.java).setAction(ACTION_SCAN_NOW),
+            )
         }
 
         fun stop(context: Context) {

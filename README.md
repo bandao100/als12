@@ -21,3 +21,7 @@ Les questions sont enregistrées dans le navigateur (`localStorage`). Pensez à 
 - `index.html` : structure de la page
 - `styles.css` : mise en forme
 - `app.js` : logique (banque, quiz, import et export)
+
+## Surveillance réseau (Android)
+
+Application Android de surveillance du Wi-Fi domestique, dans le dossier `reseau-monitor/`. Voir [reseau-monitor/README.md](reseau-monitor/README.md) pour l'installation de l'APK.

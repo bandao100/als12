@@ -54,3 +54,12 @@ fun parseArpTable(lines: List<String>): Map<String, String> {
         }
         .toMap()
 }
+
+/**
+ * Nom court affichable à partir du résultat d'une résolution DNS inverse : premier libellé
+ * (« iphone-de-marie.home » devient « iphone-de-marie »), ou vide si rien n'a été résolu.
+ */
+fun shortHostname(resolved: String?, ip: String): String {
+    if (resolved.isNullOrBlank() || resolved == ip || parseIpv4(resolved) != null) return ""
+    return resolved.substringBefore('.')
+}

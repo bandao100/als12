@@ -2,6 +2,7 @@ package com.example.reseaumonitor
 
 import java.io.IOException
 import java.net.ConnectException
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 
@@ -29,4 +30,8 @@ object LanScanner {
         }
         return false
     }
+
+    /** Nom court de l'hôte par résolution DNS inverse, ou vide. Bloquant. */
+    fun hostnameOf(ip: String): String =
+        shortHostname(runCatching { InetAddress.getByName(ip).canonicalHostName }.getOrNull(), ip)
 }
