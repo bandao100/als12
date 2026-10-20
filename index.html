@@ -1,15 +1,23 @@
+---
+---
+{%- assign e = site.data.entreprise -%}
+{%- assign a = site.data.accueil -%}
+{%- assign t = site.data.textes -%}
+{%- assign svcs = site.data.services -%}
+{%- assign reals = site.data.realisations -%}
+{%- assign wa = e.whatsapp | remove: " " | remove: "+" | remove: "-" | remove: "." | remove: "(" | remove: ")" -%}
 <!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>ASK'N CO | Multiple Service Company</title>
-  <meta name="description" content="ASK'N CO, entreprise multiservice : traduction, bâtiment et travaux publics, fourniture de matériel, réseaux et télécommunications, assistance juridique et intermédiation financière.">
+  <title>{{ e.nom }} | {{ e.activite }}</title>
+  <meta name="description" content="{{ e.description_seo | escape }}">
   <meta name="theme-color" content="#0E4A7E">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="ASK'N CO | Multiple Service Company">
-  <meta property="og:description" content="Un seul interlocuteur pour tous vos projets.">
-  <meta property="og:image" content="assets/img/og-image.jpg">
+  <meta property="og:title" content="{{ e.nom | escape }} | {{ e.activite | escape }}">
+  <meta property="og:description" content="{{ t.pied_de_page | escape }}">
+  <meta property="og:image" content="{{ '/assets/img/og-image.jpg' | absolute_url }}">
   <meta property="og:locale" content="fr_FR">
   <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -23,8 +31,8 @@
 
   <header class="site-header">
     <div class="wrap header-inner">
-      <a class="brand" href="#accueil" aria-label="ASK'N CO, retour à l'accueil">
-        <img class="logo logo-light" src="assets/img/logo.png" width="728" height="194" alt="ASK'N CO, Multiple Service Company">
+      <a class="brand" href="#accueil" aria-label="{{ e.nom | escape }}, retour à l'accueil">
+        <img class="logo logo-light" src="assets/img/logo.png" width="728" height="194" alt="{{ e.nom | escape }}, {{ e.activite | escape }}">
         <img class="logo logo-dark" src="assets/img/logo-dark.png" width="728" height="194" alt="" aria-hidden="true">
       </a>
       <button class="nav-toggle" type="button" id="nav-toggle" aria-expanded="false" aria-controls="site-nav">
@@ -36,8 +44,12 @@
           <li><a href="#services">Services</a></li>
           <li><a href="#methode">Méthode</a></li>
           <li><a href="#clients">Clients</a></li>
+          {%- if reals.size > 0 %}
+          <li><a href="#realisations">Réalisations</a></li>
+          {%- endif %}
           <li><a href="#apropos">À propos</a></li>
-          <li><a class="btn btn-small" href="#contact">Demander un devis</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a class="btn btn-small" href="#contact">{{ a.bouton_secondaire | escape }}</a></li>
         </ul>
       </nav>
     </div>
@@ -49,81 +61,65 @@
     <section class="hero" id="accueil">
       <div class="wrap hero-grid">
         <div class="hero-text">
-          <p class="eyebrow">Multiple Service Company</p>
+          <p class="hero-badge"><span class="pulse" aria-hidden="true"></span>{{ a.surtitre | escape }}</p>
           <h1>
-            <span class="sr-only">Un seul interlocuteur pour tous vos projets.</span>
+            <span class="sr-only">{{ a.titre_debut | escape }} {{ a.titre_liaison | escape }} {{ a.titre_fin | escape }}</span>
             <span aria-hidden="true">
-              <span class="h1-line">Un seul interlocuteur</span>
-              <span class="h1-line">pour <span class="rotator" id="rotator"><span class="rotator-item is-current" data-key="all">tous vos projets.</span><span class="rotator-item" data-key="traduction" data-family="conseil">vos traductions.</span><span class="rotator-item" data-key="btp" data-family="tech">vos chantiers.</span><span class="rotator-item" data-key="materiel" data-family="tech">votre matériel.</span><span class="rotator-item" data-key="reseaux" data-family="tech">vos réseaux.</span><span class="rotator-item" data-key="financement" data-family="conseil">vos financements.</span><span class="rotator-item" data-key="juridique" data-family="conseil">vos démarches.</span></span></span>
+              <span class="h1-line">{{ a.titre_debut | escape }}</span>
+              <span class="h1-line">{{ a.titre_liaison | escape }} <span class="rotator" id="rotator"><span class="rotator-item is-current" data-key="all">{{ a.titre_fin | escape }}</span>{% for s in svcs %}{% if s.accroche and s.accroche != "" %}<span class="rotator-item" data-key="{{ s.id }}" data-family="{{ s.famille }}">{{ s.accroche | escape }}</span>{% endif %}{% endfor %}</span></span>
             </span>
           </h1>
-          <p class="lead">ASK'N CO réunit six métiers sous un même toit, de la traduction aux travaux, du matériel au financement, et suit votre dossier du premier contact à la livraison.</p>
+          <p class="lead">{{ a.introduction | escape }}</p>
           <div class="hero-actions">
-            <a class="btn" href="#services">Voir nos services</a>
-            <a class="btn btn-ghost" href="#contact">Demander un devis</a>
+            <a class="btn btn-arrow" href="#services">{{ a.bouton_principal | escape }} {% include icone.html nom="fleche" %}</a>
+            <a class="btn btn-ghost" href="#contact">{{ a.bouton_secondaire | escape }}</a>
           </div>
           <dl class="hero-points">
+            {%- for g in a.engagements %}
             <div>
-              <dt>Interlocuteur unique</dt>
-              <dd>Un seul contact coordonne l'ensemble de vos besoins.</dd>
+              <dt><span class="point-icon">{% include icone.html nom=g.icone %}</span>{{ g.titre | escape }}</dt>
+              <dd>{{ g.texte | escape }}</dd>
             </div>
-            <div>
-              <dt>Devis détaillé</dt>
-              <dd>Prestations, délais et coûts connus avant tout engagement.</dd>
-            </div>
-            <div>
-              <dt>Suivi de bout en bout</dt>
-              <dd>Nous restons à vos côtés jusqu'à la livraison.</dd>
-            </div>
+            {%- endfor %}
           </dl>
         </div>
 
+        {%- assign n = svcs.size -%}
+        {%- if n > 8 %}{% assign n = 8 %}{% endif -%}
+        {%- if n >= 3 %}
+        {%- capture hubkey %}n{{ n }}{% endcapture -%}
+        {%- assign pos = site.data.hub[hubkey] %}
         <figure class="hero-hub">
-          <svg viewBox="0 0 440 440" role="img" aria-labelledby="hub-title hub-desc">
-            <title id="hub-title">Les six métiers d'ASK'N CO</title>
-            <desc id="hub-desc">ASK'N CO au centre, relié à six métiers : traduction, assistance juridique, intermédiation financière, bâtiment et travaux publics, fourniture de matériel, réseaux et télécommunications.</desc>
+          <svg viewBox="-30 0 500 440" role="img" aria-labelledby="hub-title hub-desc">
+            <title id="hub-title">Les métiers de {{ e.nom | escape }}</title>
+            <desc id="hub-desc">{{ e.nom | escape }} au centre, relié à ses métiers : {% for s in svcs limit: n %}{{ s.titre | escape }}{% unless forloop.last %}, {% endunless %}{% endfor %}.</desc>
             <circle class="hub-ring" cx="220" cy="220" r="160"></circle>
-
-            <line class="hub-link is-conseil" data-key="traduction" x1="220" y1="220" x2="220" y2="60"></line>
-            <line class="hub-link is-tech" data-key="btp" x1="220" y1="220" x2="358.6" y2="140"></line>
-            <line class="hub-link is-tech" data-key="materiel" x1="220" y1="220" x2="358.6" y2="300"></line>
-            <line class="hub-link is-tech" data-key="reseaux" x1="220" y1="220" x2="220" y2="380"></line>
-            <line class="hub-link is-conseil" data-key="financement" x1="220" y1="220" x2="81.4" y2="300"></line>
-            <line class="hub-link is-conseil" data-key="juridique" x1="220" y1="220" x2="81.4" y2="140"></line>
-
-            <circle class="hub-core" cx="220" cy="220" r="58"></circle>
+            <circle class="hub-ring hub-ring-inner" cx="220" cy="220" r="104"></circle>
+            {%- for s in svcs limit: n %}
+            {%- assign p = pos[forloop.index0] %}
+            <line class="hub-link is-{{ s.famille }}" data-key="{{ s.id }}" x1="220" y1="220" x2="{{ p.x }}" y2="{{ p.y }}"></line>
+            {%- endfor %}
+            <circle class="hub-core-halo" cx="220" cy="220" r="66"></circle>
+            <circle class="hub-core" cx="220" cy="220" r="56"></circle>
             <image href="assets/img/favicon.png" x="186" y="186" width="68" height="68"></image>
-
-            <a class="hub-node is-conseil" href="#svc-traduction" data-key="traduction" style="--i: 0">
-              <rect x="156" y="40" width="128" height="40" rx="20"></rect>
-              <text x="220" y="65" text-anchor="middle">Traduction</text>
+            {%- for s in svcs limit: n %}
+            {%- assign p = pos[forloop.index0] %}
+            {%- assign label = s.libelle_schema | default: s.titre %}
+            {%- assign w = label.size | times: 8.2 | plus: 38 %}
+            {%- if w < 92 %}{% assign w = 92 %}{% endif %}
+            {%- assign half = w | divided_by: 2.0 %}
+            <a class="hub-node is-{{ s.famille }}" href="#svc-{{ s.id }}" data-key="{{ s.id }}" style="--i: {{ forloop.index0 }}">
+              <rect x="{{ p.x | minus: half | round: 1 }}" y="{{ p.y | minus: 20 }}" width="{{ w | round: 1 }}" height="40" rx="20"></rect>
+              <text x="{{ p.x }}" y="{{ p.y | plus: 5 }}" text-anchor="middle">{{ label | escape }}</text>
             </a>
-            <a class="hub-node is-tech" href="#svc-btp" data-key="btp" style="--i: 1">
-              <rect x="310.6" y="120" width="96" height="40" rx="20"></rect>
-              <text x="358.6" y="145" text-anchor="middle">BTP</text>
-            </a>
-            <a class="hub-node is-tech" href="#svc-materiel" data-key="materiel" style="--i: 2">
-              <rect x="300.6" y="280" width="116" height="40" rx="20"></rect>
-              <text x="358.6" y="305" text-anchor="middle">Matériel</text>
-            </a>
-            <a class="hub-node is-tech" href="#svc-reseaux" data-key="reseaux" style="--i: 3">
-              <rect x="132" y="360" width="176" height="40" rx="20"></rect>
-              <text x="220" y="385" text-anchor="middle">Réseaux &amp; télécoms</text>
-            </a>
-            <a class="hub-node is-conseil" href="#svc-financement" data-key="financement" style="--i: 4">
-              <rect x="15.4" y="280" width="132" height="40" rx="20"></rect>
-              <text x="81.4" y="305" text-anchor="middle">Financement</text>
-            </a>
-            <a class="hub-node is-conseil" href="#svc-juridique" data-key="juridique" style="--i: 5">
-              <rect x="23.4" y="120" width="116" height="40" rx="20"></rect>
-              <text x="81.4" y="145" text-anchor="middle">Juridique</text>
-            </a>
+            {%- endfor %}
           </svg>
           <figcaption class="hub-legend">
-            <span class="legend-item is-conseil">Services et conseil</span>
-            <span class="legend-item is-tech">Travaux et équipements</span>
+            <span class="legend-item is-conseil">{{ t.famille_conseil | escape }}</span>
+            <span class="legend-item is-tech">{{ t.famille_tech | escape }}</span>
           </figcaption>
         </figure>
+        {%- endif %}
       </div>
     </section>
 
@@ -131,187 +127,173 @@
     <section class="section" id="services" aria-labelledby="services-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
-          <p class="eyebrow">Nos services</p>
-          <h2 id="services-title">Six métiers à votre service</h2>
-          <p class="section-intro">Faites appel à un seul de nos métiers ou combinez-en plusieurs dans un même projet : nous coordonnons l'ensemble.</p>
+          <p class="eyebrow">{{ t.services_surtitre | escape }}</p>
+          <h2 id="services-title">{{ t.services_titre | escape }}</h2>
+          <p class="section-intro">{{ t.services_intro | escape }}</p>
         </div>
 
         <div class="filters" role="group" aria-label="Filtrer les services par famille">
           <button type="button" class="filter is-active" id="filter-all" data-filter="all" aria-pressed="true">Tous</button>
-          <button type="button" class="filter" id="filter-conseil" data-filter="conseil" aria-pressed="false">Services et conseil</button>
-          <button type="button" class="filter" id="filter-tech" data-filter="tech" aria-pressed="false">Travaux et équipements</button>
+          <button type="button" class="filter" id="filter-conseil" data-filter="conseil" aria-pressed="false">{{ t.famille_conseil | escape }}</button>
+          <button type="button" class="filter" id="filter-tech" data-filter="tech" aria-pressed="false">{{ t.famille_tech | escape }}</button>
         </div>
 
         <div class="services-grid">
-          <article class="service" id="svc-traduction" data-domain="conseil" data-reveal>
-            <span class="tag tag-conseil">Services et conseil</span>
-            <h3>Traduction et interprétariat</h3>
-            <p>Traduction de vos documents officiels, techniques et commerciaux, et interprétation pour vos réunions et événements.</p>
+          {%- for s in svcs %}
+          <article class="service is-{{ s.famille }}" id="svc-{{ s.id }}" data-domain="{{ s.famille }}" data-reveal>
+            <div class="service-top">
+              <span class="service-icon">{% include icone.html nom=s.icone %}</span>
+              <span class="tag tag-{{ s.famille }}">{% if s.famille == "tech" %}{{ t.famille_tech | escape }}{% else %}{{ t.famille_conseil | escape }}{% endif %}</span>
+            </div>
+            <h3>{{ s.titre | escape }}</h3>
+            <p>{{ s.description | escape }}</p>
+            {%- if s.prestations.size > 0 %}
             <h4>Prestations</h4>
             <ul>
-              <li>Documents administratifs, juridiques et techniques</li>
-              <li>Interprétation de réunion, de conférence et de liaison</li>
-              <li>Relecture et adaptation de contenus</li>
+              {%- for item in s.prestations %}
+              <li>{{ item | escape }}</li>
+              {%- endfor %}
             </ul>
+            {%- endif %}
+            <a class="service-cta" href="#contact" data-service="{{ s.titre | escape }}">Demander un devis {% include icone.html nom="fleche" %}</a>
           </article>
-
-          <article class="service" id="svc-juridique" data-domain="conseil" data-reveal>
-            <span class="tag tag-conseil">Services et conseil</span>
-            <h3>Assistance juridique</h3>
-            <p>Accompagnement dans vos démarches juridiques et administratives, pour les entreprises comme pour les particuliers.</p>
-            <h4>Prestations</h4>
-            <ul>
-              <li>Création d'entreprise et formalités administratives</li>
-              <li>Préparation et suivi de contrats et de dossiers</li>
-              <li>Mise en relation avec avocats, notaires et huissiers</li>
-            </ul>
-          </article>
-
-          <article class="service" id="svc-financement" data-domain="conseil" data-reveal>
-            <span class="tag tag-conseil">Services et conseil</span>
-            <h3>Intermédiation financière</h3>
-            <p>Mise en relation avec les banques, les institutions de microfinance et les investisseurs pour financer vos projets.</p>
-            <h4>Prestations</h4>
-            <ul>
-              <li>Montage de dossiers de financement</li>
-              <li>Recherche de financements bancaires et de microfinance</li>
-              <li>Accompagnement jusqu'à l'obtention des fonds</li>
-            </ul>
-          </article>
-
-          <article class="service" id="svc-btp" data-domain="tech" data-reveal>
-            <span class="tag tag-tech">Travaux et équipements</span>
-            <h3>Bâtiment et travaux publics</h3>
-            <p>Construction, rénovation et aménagement de bâtiments et d'ouvrages, du devis à la réception des travaux.</p>
-            <h4>Prestations</h4>
-            <ul>
-              <li>Construction et réhabilitation de bâtiments</li>
-              <li>Voirie, assainissement et petits ouvrages</li>
-              <li>Suivi de chantier et réception des travaux</li>
-            </ul>
-          </article>
-
-          <article class="service" id="svc-materiel" data-domain="tech" data-reveal>
-            <span class="tag tag-tech">Travaux et équipements</span>
-            <h3>Fourniture de matériel</h3>
-            <p>Approvisionnement en équipements et consommables pour les entreprises, les administrations et les chantiers.</p>
-            <h4>Prestations</h4>
-            <ul>
-              <li>Matériel informatique et bureautique</li>
-              <li>Mobilier et équipements de bureau</li>
-              <li>Matériaux et outillage de chantier</li>
-            </ul>
-          </article>
-
-          <article class="service" id="svc-reseaux" data-domain="tech" data-reveal>
-            <span class="tag tag-tech">Travaux et équipements</span>
-            <h3>Réseaux et télécommunications</h3>
-            <p>Conception, installation et maintenance de vos infrastructures réseau et de communication.</p>
-            <h4>Prestations</h4>
-            <ul>
-              <li>Câblage réseau et fibre optique</li>
-              <li>Wi-Fi, téléphonie et vidéosurveillance</li>
-              <li>Maintenance et assistance technique</li>
-            </ul>
-          </article>
+          {%- endfor %}
         </div>
       </div>
     </section>
 
     <!-- Méthode -->
+    {%- assign m = site.data.methode %}
     <section class="section section-alt" id="methode" aria-labelledby="methode-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
-          <p class="eyebrow">Notre méthode</p>
-          <h2 id="methode-title">Comment nous travaillons</h2>
-          <p class="section-intro">Quel que soit le métier concerné, chaque demande suit les mêmes étapes.</p>
+          <p class="eyebrow">{{ m.surtitre | escape }}</p>
+          <h2 id="methode-title">{{ m.titre | escape }}</h2>
+          <p class="section-intro">{{ m.introduction | escape }}</p>
         </div>
-        <ol class="steps" data-reveal>
-          <li style="--i: 0">
-            <span class="step-n" aria-hidden="true">1</span>
-            <h3>Écoute</h3>
-            <p>Vous nous exposez votre besoin par téléphone, par e-mail ou lors d'un rendez-vous.</p>
+        <ol class="steps" data-reveal style="--steps: {{ m.etapes.size }}">
+          {%- for st in m.etapes %}
+          <li style="--i: {{ forloop.index0 }}">
+            <span class="step-n" aria-hidden="true">{{ forloop.index }}</span>
+            <h3>{{ st.titre | escape }}</h3>
+            <p>{{ st.texte | escape }}</p>
           </li>
-          <li style="--i: 1">
-            <span class="step-n" aria-hidden="true">2</span>
-            <h3>Devis</h3>
-            <p>Nous vous remettons une proposition détaillée avec les prestations, les délais et le coût.</p>
-          </li>
-          <li style="--i: 2">
-            <span class="step-n" aria-hidden="true">3</span>
-            <h3>Réalisation</h3>
-            <p>Nous coordonnons les équipes, les fournisseurs et les partenaires concernés.</p>
-          </li>
-          <li style="--i: 3">
-            <span class="step-n" aria-hidden="true">4</span>
-            <h3>Livraison et suivi</h3>
-            <p>Nous réceptionnons la prestation avec vous, puis restons disponibles pour le suivi.</p>
-          </li>
+          {%- endfor %}
         </ol>
       </div>
     </section>
 
     <!-- Clients -->
+    {%- assign c = site.data.clients %}
     <section class="section" id="clients" aria-labelledby="clients-title">
       <div class="wrap">
         <div class="section-head" data-reveal>
-          <p class="eyebrow">Nos clients</p>
-          <h2 id="clients-title">Nous travaillons avec</h2>
+          <p class="eyebrow">{{ c.surtitre | escape }}</p>
+          <h2 id="clients-title">{{ c.titre | escape }}</h2>
         </div>
         <ul class="audiences">
+          {%- for cl in c.liste %}
           <li data-reveal>
-            <h3>Entreprises et PME</h3>
-            <p>Travaux, équipements, réseaux et accompagnement administratif.</p>
+            <span class="audience-icon">{% include icone.html nom="valide" %}</span>
+            <div>
+              <h3>{{ cl.titre | escape }}</h3>
+              <p>{{ cl.texte | escape }}</p>
+            </div>
           </li>
-          <li data-reveal>
-            <h3>Administrations et services publics</h3>
-            <p>Fournitures, aménagements et infrastructures de communication.</p>
-          </li>
-          <li data-reveal>
-            <h3>ONG et organisations internationales</h3>
-            <p>Traduction, équipement et installation de bureaux.</p>
-          </li>
-          <li data-reveal>
-            <h3>Collectivités territoriales</h3>
-            <p>Petits ouvrages, voirie et équipements publics.</p>
-          </li>
-          <li data-reveal>
-            <h3>Porteurs de projet</h3>
-            <p>Création d'entreprise, montage de dossiers et recherche de financement.</p>
-          </li>
-          <li data-reveal>
-            <h3>Particuliers</h3>
-            <p>Construction, traduction de documents et démarches juridiques.</p>
-          </li>
+          {%- endfor %}
         </ul>
       </div>
     </section>
 
+    {%- if reals.size > 0 %}
+    <!-- Réalisations -->
+    <section class="section section-alt" id="realisations" aria-labelledby="realisations-title">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">{{ t.realisations_surtitre | escape }}</p>
+          <h2 id="realisations-title">{{ t.realisations_titre | escape }}</h2>
+        </div>
+        <div class="works-grid">
+          {%- for r in reals %}
+          <article class="work" data-reveal>
+            {%- if r.image and r.image != "" %}
+            <img class="work-img" src="{{ r.image | relative_url }}" alt="{{ r.titre | escape }}" loading="lazy">
+            {%- endif %}
+            <div class="work-body">
+              {%- if r.service and r.service != "" %}<span class="tag tag-conseil">{{ r.service | escape }}</span>{% endif %}
+              <h3>{{ r.titre | escape }}</h3>
+              {%- if r.lieu and r.lieu != "" %}<p class="work-place">{% include icone.html nom="lieu" %}{{ r.lieu | escape }}</p>{% endif %}
+              {%- if r.description and r.description != "" %}<p>{{ r.description | escape }}</p>{% endif %}
+            </div>
+          </article>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>
+    {%- endif %}
+
     <!-- À propos -->
+    {%- assign ap = site.data.apropos %}
     <section class="band" id="apropos" aria-labelledby="apropos-title">
       <div class="wrap band-grid">
         <div class="band-text" data-reveal>
-          <p class="eyebrow">À propos</p>
-          <h2 id="apropos-title">Plusieurs métiers, une seule équipe</h2>
-          <p>ASK'N CO est une entreprise multiservice. Vous confiez votre projet à un seul interlocuteur, qui mobilise les compétences nécessaires et coordonne chaque intervention.</p>
-          <p>Vous gagnez du temps, vous évitez de multiplier les prestataires et vous savez à tout moment où en est votre dossier.</p>
+          <p class="eyebrow">{{ ap.surtitre | escape }}</p>
+          <h2 id="apropos-title">{{ ap.titre | escape }}</h2>
+          {%- for para in ap.paragraphes %}
+          <p>{{ para | escape }}</p>
+          {%- endfor %}
           <ul class="values">
-            <li><strong>Réactivité.</strong> Une réponse rapide à chaque demande.</li>
-            <li><strong>Transparence.</strong> Des devis détaillés, sans frais cachés.</li>
-            <li><strong>Qualité.</strong> Des prestations contrôlées à chaque étape.</li>
-            <li><strong>Confidentialité.</strong> Vos documents juridiques et financiers restent protégés.</li>
+            {%- for v in ap.valeurs %}
+            <li><strong>{{ v.titre | escape }}.</strong> {{ v.texte | escape }}</li>
+            {%- endfor %}
           </ul>
         </div>
+        {%- if ap.exemple_etapes.size > 0 %}
         <div class="band-aside" data-reveal>
-          <h3>Exemple : installer vos nouveaux bureaux</h3>
+          <h3>{{ ap.exemple_titre | escape }}</h3>
           <ol class="combo">
-            <li><span class="combo-task">Formalités et bail commercial</span><span class="combo-service">Assistance juridique</span></li>
-            <li><span class="combo-task">Financement de l'installation</span><span class="combo-service">Intermédiation financière</span></li>
-            <li><span class="combo-task">Travaux d'aménagement</span><span class="combo-service">BTP</span></li>
-            <li><span class="combo-task">Câblage, Wi-Fi et téléphonie</span><span class="combo-service">Réseaux et télécoms</span></li>
-            <li><span class="combo-task">Mobilier et matériel informatique</span><span class="combo-service">Fourniture de matériel</span></li>
-            <li><span class="combo-task">Documents pour vos partenaires étrangers</span><span class="combo-service">Traduction</span></li>
+            {%- for x in ap.exemple_etapes %}
+            <li><span class="combo-task">{{ x.tache | escape }}</span><span class="combo-service">{{ x.service | escape }}</span></li>
+            {%- endfor %}
           </ol>
+        </div>
+        {%- endif %}
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    {%- assign f = site.data.faq %}
+    {%- if f.questions.size > 0 %}
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq-grid">
+        <div class="section-head" data-reveal>
+          <p class="eyebrow">{{ f.surtitre | escape }}</p>
+          <h2 id="faq-title">{{ f.titre | escape }}</h2>
+        </div>
+        <div class="faq-list" data-reveal>
+          {%- for q in f.questions %}
+          <details class="faq-item" id="faq-{{ forloop.index }}"{% if forloop.first %} open{% endif %}>
+            <summary>{{ q.question | escape }} <span class="faq-chevron">{% include icone.html nom="chevron" %}</span></summary>
+            <div class="faq-answer"><p>{{ q.reponse | escape | newline_to_br }}</p></div>
+          </details>
+          {%- endfor %}
+        </div>
+      </div>
+    </section>
+    {%- endif %}
+
+    <!-- Appel à l'action -->
+    <section class="appel" aria-labelledby="appel-title">
+      <div class="wrap appel-inner" data-reveal>
+        <div>
+          <h2 id="appel-title">{{ t.appel_titre | escape }}</h2>
+          <p>{{ t.appel_texte | escape }}</p>
+        </div>
+        <div class="appel-actions">
+          <a class="btn btn-light btn-arrow" href="#contact">{{ t.appel_bouton | escape }} {% include icone.html nom="fleche" %}</a>
+          {%- if wa != "" %}
+          <a class="btn btn-outline-light" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">{% include icone.html nom="message" %} WhatsApp</a>
+          {%- endif %}
         </div>
       </div>
     </section>
@@ -320,27 +302,43 @@
     <section class="section" id="contact" aria-labelledby="contact-title">
       <div class="wrap contact-grid">
         <div class="contact-info" data-reveal>
-          <p class="eyebrow">Contact</p>
-          <h2 id="contact-title">Parlons de votre projet</h2>
-          <p>Décrivez votre besoin en quelques lignes. Nous revenons vers vous avec un devis adapté.</p>
+          <p class="eyebrow">{{ t.contact_surtitre | escape }}</p>
+          <h2 id="contact-title">{{ t.contact_titre | escape }}</h2>
+          <p>{{ t.contact_texte | escape }}</p>
           <dl class="coords">
             <div>
-              <dt>E-mail</dt>
-              <dd><span class="coord-value" id="contact-email">votre-email@exemple.com</span>
+              <dt><span class="coord-icon">{% include icone.html nom="mail" %}</span>E-mail</dt>
+              <dd><span class="coord-value" id="contact-email">{{ e.email | escape }}</span>
                 <button type="button" class="copy" id="copy-email" data-copy="#contact-email">Copier</button></dd>
             </div>
+            {%- if e.telephone and e.telephone != "" %}
             <div>
-              <dt>Téléphone / WhatsApp</dt>
-              <dd><span class="coord-value">+XXX XX XX XX XX</span></dd>
+              <dt><span class="coord-icon">{% include icone.html nom="telephone" %}</span>Téléphone</dt>
+              <dd><span class="coord-value">{{ e.telephone | escape }}</span></dd>
             </div>
+            {%- endif %}
+            {%- if e.whatsapp and e.whatsapp != "" %}
             <div>
-              <dt>Adresse</dt>
-              <dd><span class="coord-value">Ville, Pays</span></dd>
+              <dt><span class="coord-icon">{% include icone.html nom="message" %}</span>WhatsApp</dt>
+              <dd><span class="coord-value">{{ e.whatsapp | escape }}</span></dd>
             </div>
+            {%- endif %}
+            {%- if e.adresse and e.adresse != "" %}
+            <div>
+              <dt><span class="coord-icon">{% include icone.html nom="lieu" %}</span>Adresse</dt>
+              <dd><span class="coord-value">{{ e.adresse | escape }}</span></dd>
+            </div>
+            {%- endif %}
+            {%- if e.horaires and e.horaires != "" %}
+            <div>
+              <dt><span class="coord-icon">{% include icone.html nom="horloge" %}</span>Horaires</dt>
+              <dd><span class="coord-value">{{ e.horaires | escape }}</span></dd>
+            </div>
+            {%- endif %}
           </dl>
         </div>
 
-        <form class="contact-form" id="contact-form" novalidate data-reveal>
+        <form class="contact-form" id="contact-form" novalidate data-reveal data-email="{{ e.email | escape }}" data-whatsapp="{{ wa }}">
           <div class="field-row">
             <div class="field">
               <label for="f-nom">Nom et prénom</label>
@@ -364,12 +362,9 @@
           <div class="field">
             <label for="f-service">Service souhaité</label>
             <select id="f-service" name="service">
-              <option>Traduction et interprétariat</option>
-              <option>Assistance juridique</option>
-              <option>Intermédiation financière</option>
-              <option>Bâtiment et travaux publics</option>
-              <option>Fourniture de matériel</option>
-              <option>Réseaux et télécommunications</option>
+              {%- for s in svcs %}
+              <option>{{ s.titre | escape }}</option>
+              {%- endfor %}
               <option>Plusieurs services</option>
               <option>Autre demande</option>
             </select>
@@ -378,7 +373,12 @@
             <label for="f-message">Votre besoin</label>
             <textarea id="f-message" name="message" rows="5" required placeholder="Nature du projet, lieu, délais souhaités…"></textarea>
           </div>
-          <button class="btn" type="submit" id="f-submit">Préparer mon message</button>
+          <div class="form-actions">
+            <button class="btn btn-arrow" type="submit" id="f-submit">Préparer mon e-mail {% include icone.html nom="fleche" %}</button>
+            {%- if wa != "" %}
+            <button class="btn btn-whatsapp" type="button" id="f-whatsapp">{% include icone.html nom="message" %} Envoyer sur WhatsApp</button>
+            {%- endif %}
+          </div>
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
         </form>
       </div>
@@ -386,24 +386,45 @@
   </main>
 
   <footer class="site-footer">
-    <div class="wrap footer-inner">
-      <img class="footer-logo" src="assets/img/logo-dark.png" width="728" height="194" alt="ASK'N CO">
-      <nav aria-label="Liens de pied de page">
+    <div class="wrap footer-grid">
+      <div class="footer-brand">
+        <img class="footer-logo" src="assets/img/logo-dark.png" width="728" height="194" alt="{{ e.nom | escape }}">
+        <p>{{ t.pied_de_page | escape }}</p>
+        {%- assign rs = e.reseaux %}
+        {%- capture socials %}
+          {%- if rs.facebook and rs.facebook != "" %}<li><a href="{{ rs.facebook | escape }}" target="_blank" rel="noopener">Facebook</a></li>{% endif %}
+          {%- if rs.linkedin and rs.linkedin != "" %}<li><a href="{{ rs.linkedin | escape }}" target="_blank" rel="noopener">LinkedIn</a></li>{% endif %}
+          {%- if rs.instagram and rs.instagram != "" %}<li><a href="{{ rs.instagram | escape }}" target="_blank" rel="noopener">Instagram</a></li>{% endif %}
+        {%- endcapture %}
+        {%- assign socials = socials | strip %}
+        {%- if socials != "" %}
+        <ul class="socials">{{ socials }}</ul>
+        {%- endif %}
+      </div>
+      <nav class="footer-col" aria-label="Nos services">
+        <h3>Services</h3>
         <ul>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#methode">Méthode</a></li>
-          <li><a href="#clients">Clients</a></li>
-          <li><a href="#apropos">À propos</a></li>
-          <li><a href="#contact">Contact</a></li>
+          {%- for s in svcs %}
+          <li><a href="#svc-{{ s.id }}">{{ s.titre | escape }}</a></li>
+          {%- endfor %}
         </ul>
       </nav>
-      <p class="footer-legal">© <span id="year">2026</span> ASK'N CO. Tous droits réservés.</p>
+      <div class="footer-col">
+        <h3>Contact</h3>
+        <ul>
+          <li>{{ e.email | escape }}</li>
+          {%- if e.telephone and e.telephone != "" %}<li>{{ e.telephone | escape }}</li>{% endif %}
+          {%- if e.adresse and e.adresse != "" %}<li>{{ e.adresse | escape }}</li>{% endif %}
+        </ul>
+      </div>
+      <p class="footer-legal">© <span id="year">{{ site.time | date: "%Y" }}</span> {{ e.nom | escape }}. Tous droits réservés.</p>
     </div>
   </footer>
 
-  <button class="to-top" type="button" id="to-top" aria-label="Revenir en haut de la page">
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-  </button>
+  {%- if wa != "" %}
+  <a class="wa-float" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener" aria-label="Nous écrire sur WhatsApp">{% include icone.html nom="message" %}</a>
+  {%- endif %}
+  <button class="to-top" type="button" id="to-top" aria-label="Revenir en haut de la page">{% include icone.html nom="haut" %}</button>
 
   <script src="assets/js/main.js"></script>
 </body>

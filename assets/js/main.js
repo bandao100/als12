@@ -4,9 +4,11 @@
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var hasObserver = "IntersectionObserver" in window;
 
-  // Adresse qui reçoit les demandes du formulaire : reprise du bloc Contact.
+  // Coordonnées qui reçoivent les demandes : fournies par le formulaire (fichier _data/entreprise.yml).
+  var form = document.getElementById("contact-form");
   var emailEl = document.getElementById("contact-email");
-  var CONTACT_EMAIL = emailEl ? emailEl.textContent.trim() : "";
+  var CONTACT_EMAIL = (form && form.getAttribute("data-email")) || (emailEl ? emailEl.textContent.trim() : "");
+  var WHATSAPP = form ? form.getAttribute("data-whatsapp") || "" : "";
 
   // Menu mobile
   var toggle = document.getElementById("nav-toggle");
@@ -216,31 +218,38 @@
     });
   });
 
-  // Formulaire de contact : prépare un e-mail dans la messagerie du visiteur
-  var form = document.getElementById("contact-form");
-  var status = document.getElementById("form-status");
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var required = form.querySelectorAll("[required]");
-      var firstInvalid = null;
-      required.forEach(function (field) {
-        var ok = field.value.trim() !== "" && field.checkValidity();
-        field.setAttribute("aria-invalid", String(!ok));
-        if (!ok && !firstInvalid) firstInvalid = field;
-      });
-      if (firstInvalid) {
-        status.className = "form-status is-error";
-        status.textContent = firstInvalid.type === "email" && firstInvalid.value.trim() !== ""
-          ? "L'adresse e-mail semble incomplète. Vérifiez-la puis réessayez."
-          : "Merci de renseigner votre nom, votre e-mail et votre besoin.";
-        firstInvalid.focus();
-        return;
-      }
+  // Liens « Demander un devis » des fiches : présélectionnent le service dans le formulaire
+  var serviceSelect = document.getElementById("f-service");
+  document.querySelectorAll(".service-cta").forEach(function (link) {
+    link.addEventListener("click", function () {
+      if (serviceSelect) serviceSelect.value = link.getAttribute("data-service");
+      var message = document.getElementById("f-message");
+      if (message) setTimeout(function () { message.focus({ preventScroll: true }); }, reduceMotion ? 0 : 700);
+    });
+  });
 
-      var data = new FormData(form);
-      var subject = "Demande de devis : " + data.get("service");
-      var body = [
+  // Formulaire de contact : prépare un e-mail ou un message WhatsApp pour le visiteur
+  var status = document.getElementById("form-status");
+  function checkForm() {
+    var required = form.querySelectorAll("[required]");
+    var firstInvalid = null;
+    required.forEach(function (field) {
+      var ok = field.value.trim() !== "" && field.checkValidity();
+      field.setAttribute("aria-invalid", String(!ok));
+      if (!ok && !firstInvalid) firstInvalid = field;
+    });
+    if (firstInvalid) {
+      status.className = "form-status is-error";
+      status.textContent = firstInvalid.type === "email" && firstInvalid.value.trim() !== ""
+        ? "L'adresse e-mail semble incomplète. Vérifiez-la puis réessayez."
+        : "Merci de renseigner votre nom, votre e-mail et votre besoin.";
+      firstInvalid.focus();
+      return null;
+    }
+    var data = new FormData(form);
+    return {
+      subject: "Demande de devis : " + data.get("service"),
+      body: [
         "Nom : " + data.get("nom"),
         "Organisation : " + (data.get("organisation") || "-"),
         "E-mail : " + data.get("email"),
@@ -248,16 +257,34 @@
         "Service souhaité : " + data.get("service"),
         "",
         data.get("message")
-      ].join("\n");
-
+      ].join("\n")
+    };
+  }
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var msg = checkForm();
+      if (!msg) return;
       window.location.href = "mailto:" + CONTACT_EMAIL +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(body);
-
+        "?subject=" + encodeURIComponent(msg.subject) +
+        "&body=" + encodeURIComponent(msg.body);
       status.className = "form-status is-ok";
       status.textContent = "Votre messagerie devrait s'ouvrir avec le message prérempli, prêt à être envoyé. " +
         "Si rien ne s'ouvre, écrivez-nous directement à " + CONTACT_EMAIL + ".";
     });
+
+    var waButton = document.getElementById("f-whatsapp");
+    if (waButton && WHATSAPP) {
+      waButton.addEventListener("click", function () {
+        var msg = checkForm();
+        if (!msg) return;
+        var url = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg.subject + "\n\n" + msg.body);
+        var opened = window.open(url, "_blank");
+        if (opened) opened.opener = null; else window.location.href = url;
+        status.className = "form-status is-ok";
+        status.textContent = "WhatsApp devrait s'ouvrir avec votre message prérempli, prêt à être envoyé.";
+      });
+    }
 
     form.addEventListener("input", function (e) {
       if (e.target.getAttribute("aria-invalid") === "true" && e.target.value.trim() !== "") {

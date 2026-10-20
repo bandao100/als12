@@ -1,0 +1,12 @@
+surtitre: "Notre méthode"
+titre: "Comment nous travaillons"
+introduction: "Quel que soit le métier concerné, chaque demande suit les mêmes étapes."
+etapes:
+  - titre: "Écoute"
+    texte: "Vous nous exposez votre besoin par téléphone, par e-mail ou lors d'un rendez-vous."
+  - titre: "Devis"
+    texte: "Nous vous remettons une proposition détaillée avec les prestations, les délais et le coût."
+  - titre: "Réalisation"
+    texte: "Nous coordonnons les équipes, les fournisseurs et les partenaires concernés."
+  - titre: "Livraison et suivi"
+    texte: "Nous réceptionnons la prestation avec vous, puis restons disponibles pour le suivi."

@@ -1,0 +1,66 @@
+- id: traduction
+  titre: "Traduction et interprétariat"
+  famille: conseil
+  icone: traduction
+  libelle_schema: "Traduction"
+  accroche: "vos traductions."
+  description: "Traduction de vos documents officiels, techniques et commerciaux, et interprétation pour vos réunions et événements."
+  prestations:
+    - "Documents administratifs, juridiques et techniques"
+    - "Interprétation de réunion, de conférence et de liaison"
+    - "Relecture et adaptation de contenus"
+- id: juridique
+  titre: "Assistance juridique"
+  famille: conseil
+  icone: juridique
+  libelle_schema: "Juridique"
+  accroche: "vos démarches."
+  description: "Accompagnement dans vos démarches juridiques et administratives, pour les entreprises comme pour les particuliers."
+  prestations:
+    - "Création d'entreprise et formalités administratives"
+    - "Préparation et suivi de contrats et de dossiers"
+    - "Mise en relation avec avocats, notaires et huissiers"
+- id: financement
+  titre: "Intermédiation financière"
+  famille: conseil
+  icone: finance
+  libelle_schema: "Financement"
+  accroche: "vos financements."
+  description: "Mise en relation avec les banques, les institutions de microfinance et les investisseurs pour financer vos projets."
+  prestations:
+    - "Montage de dossiers de financement"
+    - "Recherche de financements bancaires et de microfinance"
+    - "Accompagnement jusqu'à l'obtention des fonds"
+- id: btp
+  titre: "Bâtiment et travaux publics"
+  famille: tech
+  icone: btp
+  libelle_schema: "BTP"
+  accroche: "vos chantiers."
+  description: "Construction, rénovation et aménagement de bâtiments et d'ouvrages, du devis à la réception des travaux."
+  prestations:
+    - "Construction et réhabilitation de bâtiments"
+    - "Voirie, assainissement et petits ouvrages"
+    - "Suivi de chantier et réception des travaux"
+- id: materiel
+  titre: "Fourniture de matériel"
+  famille: tech
+  icone: materiel
+  libelle_schema: "Matériel"
+  accroche: "votre matériel."
+  description: "Approvisionnement en équipements et consommables pour les entreprises, les administrations et les chantiers."
+  prestations:
+    - "Matériel informatique et bureautique"
+    - "Mobilier et équipements de bureau"
+    - "Matériaux et outillage de chantier"
+- id: reseaux
+  titre: "Réseaux et télécommunications"
+  famille: tech
+  icone: reseaux
+  libelle_schema: "Réseaux & télécoms"
+  accroche: "vos réseaux."
+  description: "Conception, installation et maintenance de vos infrastructures réseau et de communication."
+  prestations:
+    - "Câblage réseau et fibre optique"
+    - "Wi-Fi, téléphonie et vidéosurveillance"
+    - "Maintenance et assistance technique"
