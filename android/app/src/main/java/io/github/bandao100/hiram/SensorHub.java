@@ -1,4 +1,4 @@
-package io.github.bandao100.sentinelle;
+package io.github.bandao100.hiram;
 
 import android.app.Activity;
 import android.hardware.Sensor;

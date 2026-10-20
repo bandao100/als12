@@ -44,10 +44,10 @@
         android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Sentinelle"
+        android:label="Hiram"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="false"
-        android:theme="@style/Theme.Sentinelle"
+        android:theme="@style/Theme.Hiram"
         android:usesCleartextTraffic="false">
 
         <activity

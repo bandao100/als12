@@ -60,7 +60,7 @@ export function createScope(canvas, getState) {
   let view = { ctx: null, width: 0, height: 0 };
   const lastSweepHit = new Map();
   const onTheme = () => glowCache.clear();
-  window.addEventListener('sentinelle:theme', onTheme);
+  window.addEventListener('hiram:theme', onTheme);
   view = hiDpiCanvas(canvas);
 
   const SWEEP_PERIOD = 3600;
@@ -248,7 +248,7 @@ export function createScope(canvas, getState) {
     dispose() {
       loop.stop();
       view.dispose?.();
-      window.removeEventListener('sentinelle:theme', onTheme);
+      window.removeEventListener('hiram:theme', onTheme);
     },
   };
 }

@@ -7,7 +7,7 @@ import { $, el, escapeHtml, toast } from '../core/ui.js';
 import { radarService } from '../services/radar-service.js';
 
 export const APP_VERSION = '1.1.0';
-export const APK_URL = 'https://github.com/bandao100/als12/releases/download/android/sentinelle.apk';
+export const APK_URL = 'https://github.com/bandao100/als12/releases/download/android/hiram.apk';
 
 const SWITCHES = [
   ['voice', 'Alertes vocales', 'Annonce le type de radar, la distance et la limite.'],
@@ -76,7 +76,7 @@ export function settingsScreen(ctx) {
       </div>
 
       <div class="note">${icons.info}
-        <p><strong>Confidentialité.</strong> Images, sons et mesures sont analysés sur votre téléphone et ne sont jamais enregistrés ni transmis. Seule votre position est envoyée au service Overpass d’OpenStreetMap pour télécharger les radars dans un rayon de 8 km. Données cartographiques © contributeurs OpenStreetMap, licence ODbL. Sentinelle ${APP_VERSION}.</p>
+        <p><strong>Confidentialité.</strong> Images, sons et mesures sont analysés sur votre téléphone et ne sont jamais enregistrés ni transmis. Seule votre position est envoyée au service Overpass d’OpenStreetMap pour télécharger les radars dans un rayon de 8 km. Données cartographiques © contributeurs OpenStreetMap, licence ODbL. Hiram ${APP_VERSION}.</p>
       </div>
     </section>`);
 

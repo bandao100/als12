@@ -1,4 +1,4 @@
-# Sentinelle
+# Hiram
 
 Détecteur de poche pour smartphone : **radars routiers**, **caméras cachées**, **traceurs Bluetooth**, **réseaux Wi-Fi de caméras**, **champs magnétiques** et **ultrasons**. Sans compte, sans publicité, utilisable hors ligne.
 
@@ -20,7 +20,7 @@ L'accueil propose aussi un **protocole d'inspection de chambre** en 8 étapes et
 
 ## Ce qu'un téléphone ne peut pas faire
 
-- **Capter les ondes radar** : les cinémomètres émettent en bande K / Ka (24 à 35 GHz), qu'aucune antenne de smartphone ne reçoit. Sentinelle se fonde donc sur la position connue des radars.
+- **Capter les ondes radar** : les cinémomètres émettent en bande K / Ka (24 à 35 GHz), qu'aucune antenne de smartphone ne reçoit. Hiram se fonde donc sur la position connue des radars.
 - **Scanner le Wi-Fi depuis une page web** : les navigateurs ne l'autorisent pas, d'où l'application Android. Même avec elle, seules les caméras qui diffusent leur propre réseau apparaissent ; une caméra branchée sur la box de l'hôte reste invisible.
 - **Repérer un micro GSM / 4G** : il faut un détecteur RF dédié.
 
@@ -46,7 +46,7 @@ Les capteurs exigent une page servie en **HTTPS**. Un **mode démonstration** (R
 
 ### Installer l'APK
 
-1. Sur le téléphone, ouvrez <https://github.com/bandao100/als12/releases/download/android/sentinelle.apk> (ou la page *Releases* du dépôt, version « Sentinelle pour Android »).
+1. Sur le téléphone, ouvrez <https://github.com/bandao100/als12/releases/download/android/hiram.apk> (ou la page *Releases* du dépôt, version « Hiram pour Android »).
 2. Ouvrez le fichier téléchargé. One UI demande d'autoriser l'installation depuis cette source (*Internet* ou *Mes fichiers*) : acceptez, revenez, puis touchez **Installer**.
 3. Si Play Protect affiche un avertissement (application hors Play Store), choisissez *Plus de détails › Installer quand même*.
 4. Au premier usage de chaque détecteur, Android demande l'autorisation correspondante.
@@ -71,11 +71,11 @@ L'écran reste allumé pendant la surveillance radar et les alertes vocales bais
 Sans clé fournie, l'APK est signé avec une clé de débogage propre à chaque compilation : pour installer une nouvelle version, désinstallez d'abord l'ancienne (les réglages et signalements sont alors perdus). Pour des mises à jour directes, créez une clé une fois pour toutes :
 
 ```bash
-keytool -genkeypair -v -keystore sentinelle.keystore -alias sentinelle -keyalg RSA -keysize 4096 -validity 10000
-base64 -w0 sentinelle.keystore
+keytool -genkeypair -v -keystore hiram.keystore -alias hiram -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 hiram.keystore
 ```
 
-puis ajoutez dans *Settings › Secrets and variables › Actions* : `ANDROID_KEYSTORE_BASE64` (la sortie de `base64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`sentinelle`) et `ANDROID_KEY_PASSWORD`. Gardez le fichier `sentinelle.keystore` en lieu sûr, hors du dépôt.
+puis ajoutez dans *Settings › Secrets and variables › Actions* : `ANDROID_KEYSTORE_BASE64` (la sortie de `base64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`hiram`) et `ANDROID_KEY_PASSWORD`. Gardez le fichier `hiram.keystore` en lieu sûr, hors du dépôt.
 
 ### Compiler soi-même
 

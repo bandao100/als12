@@ -1,4 +1,4 @@
-package io.github.bandao100.sentinelle;
+package io.github.bandao100.hiram;
 
 import android.Manifest;
 import android.app.Activity;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Fenêtre unique : l'interface web de Sentinelle dans une WebView reliée aux capteurs natifs. */
+/** Fenêtre unique : l'interface web d'Hiram dans une WebView reliée aux capteurs natifs. */
 public class MainActivity extends Activity {
     static final String START_URL = "https://" + AssetServer.HOST + "/www/index.html";
 
@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
         });
 
         bridge = new NativeBridge(this, web);
-        web.addJavascriptInterface(bridge, "SentinelleNative");
+        web.addJavascriptInterface(bridge, "HiramNative");
         if (state == null || web.restoreState(state) == null) web.loadUrl(START_URL);
     }
 

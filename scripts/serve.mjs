@@ -28,4 +28,4 @@ createServer(async (req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Introuvable');
   }
-}).listen(port, () => console.log(`Sentinelle sur http://localhost:${port}`));
+}).listen(port, () => console.log(`Hiram sur http://localhost:${port}`));

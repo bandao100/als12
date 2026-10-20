@@ -1,4 +1,4 @@
-package io.github.bandao100.sentinelle;
+package io.github.bandao100.hiram;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -15,8 +15,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Pont JavaScript exposé sous window.SentinelleNative.
- * call() est asynchrone : la réponse revient par window.__sentinelleNative.resolve(id, json).
+ * Pont JavaScript exposé sous window.HiramNative.
+ * call() est asynchrone : la réponse revient par window.__hiramNative.resolve(id, json).
  * poll() est synchrone, pour les mesures relevées plusieurs fois par seconde.
  */
 final class NativeBridge {
@@ -175,7 +175,7 @@ final class NativeBridge {
     }
 
     private void send(int id, String json) {
-        String script = "window.__sentinelleNative&&window.__sentinelleNative.resolve(" + id + "," + JSONObject.quote(json) + ")";
+        String script = "window.__hiramNative&&window.__hiramNative.resolve(" + id + "," + JSONObject.quote(json) + ")";
         main.post(() -> web.evaluateJavascript(script, null));
     }
 

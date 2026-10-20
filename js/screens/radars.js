@@ -66,7 +66,7 @@ export function radarsScreen() {
       </div>
 
       <div class="note">${icons.info}
-        <p><strong>Un téléphone ne capte pas les ondes radar.</strong> Les cinémomètres émettent en bande K ou Ka (24 à 35 GHz), hors de portée de toute antenne de smartphone. Sentinelle s'appuie donc sur la position connue des radars. Dans plusieurs pays, dont la France, les détecteurs d'ondes sont interdits et seules les « zones de danger » peuvent être annoncées : activez ce mode dans les réglages si votre législation l'exige.</p>
+        <p><strong>Un téléphone ne capte pas les ondes radar.</strong> Les cinémomètres émettent en bande K ou Ka (24 à 35 GHz), hors de portée de toute antenne de smartphone. Hiram s'appuie donc sur la position connue des radars. Dans plusieurs pays, dont la France, les détecteurs d'ondes sont interdits et seules les « zones de danger » peuvent être annoncées : activez ce mode dans les réglages si votre législation l'exige.</p>
       </div>
     </section>`);
 
@@ -227,7 +227,7 @@ export function radarsScreen() {
       scope.instance.start();
       radarService.addEventListener('update', onUpdate);
       unsub = settings.subscribe(onSettings);
-      window.addEventListener('sentinelle:theme', renderLegend);
+      window.addEventListener('hiram:theme', renderLegend);
       renderLegend();
       renderRange();
       render();
@@ -236,7 +236,7 @@ export function radarsScreen() {
       scope.instance?.dispose();
       radarService.removeEventListener('update', onUpdate);
       unsub?.();
-      window.removeEventListener('sentinelle:theme', renderLegend);
+      window.removeEventListener('hiram:theme', renderLegend);
     },
   };
 }

@@ -1,6 +1,6 @@
 {
-  "name": "Sentinelle — détecteur de radars, caméras et ondes",
-  "short_name": "Sentinelle",
+  "name": "Hiram — détecteur de radars, caméras et ondes",
+  "short_name": "Hiram",
   "description": "Radars routiers, caméras cachées, traceurs Bluetooth, champs magnétiques et ultrasons.",
   "lang": "fr",
   "start_url": "./#accueil",

@@ -1,4 +1,4 @@
-package io.github.bandao100.sentinelle;
+package io.github.bandao100.hiram;
 
 import android.content.res.AssetManager;
 import android.net.Uri;

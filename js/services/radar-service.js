@@ -18,8 +18,8 @@ import { readJSON, settings, writeJSON } from '../core/store.js';
 import { createWakeLock } from '../core/ui.js';
 import { createDemoDrive } from '../sim/demo.js';
 
-const CACHE_KEY = 'sentinelle:osm-cache:v1';
-const REPORT_KEY = 'sentinelle:reported:v1';
+const CACHE_KEY = 'hiram:osm-cache:v1';
+const REPORT_KEY = 'hiram:reported:v1';
 const FETCH_RADIUS = 8000;
 const REFETCH_AFTER = 3000;
 const REPORT_TTL = 7 * 24 * 3600 * 1000;

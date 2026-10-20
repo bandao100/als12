@@ -187,7 +187,7 @@ export function wavesScreen() {
     try {
       const perm = await nativeCall('permissions', 'bluetooth');
       if (!perm?.granted) {
-        toast('Autorisez « Appareils à proximité » pour que Sentinelle puisse scanner le Bluetooth.', { tone: 'danger', timeout: 5000 });
+        toast('Autorisez « Appareils à proximité » pour qu’Hiram puisse scanner le Bluetooth.', { tone: 'danger', timeout: 5000 });
         return;
       }
       const res = await nativeCall('ble.start');
@@ -523,7 +523,7 @@ export function wavesScreen() {
         "<strong>Limite :</strong> seules les caméras qui diffusent leur propre réseau (mode configuration, point d'accès direct) apparaissent ici. Une caméra déjà branchée sur la box de l'hôte reste invisible ; vérifiez alors les appareils connectés dans l'interface de la box. Android autorise 4 analyses toutes les 2 minutes : la liste se met à jour toutes les 35 s.";
     } else {
       p.innerHTML =
-        "<strong>Analyse Wi-Fi réservée à l'application Android.</strong> Les navigateurs n'ont pas accès aux réseaux alentour. Installez l'APK Sentinelle (Réglages), ou ouvrez la liste des réseaux de votre téléphone : des noms comme « IPC », « CAM », « HD- », « V380 », « Tapo_C » ou « EZVIZ » doivent attirer l'attention.";
+        "<strong>Analyse Wi-Fi réservée à l'application Android.</strong> Les navigateurs n'ont pas accès aux réseaux alentour. Installez l'APK Hiram (Réglages), ou ouvrez la liste des réseaux de votre téléphone : des noms comme « IPC », « CAM », « HD- », « V380 », « Tapo_C » ou « EZVIZ » doivent attirer l'attention.";
     }
   }
 

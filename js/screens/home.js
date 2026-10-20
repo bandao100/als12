@@ -4,7 +4,7 @@ import { readJSON, settings, writeJSON } from '../core/store.js';
 import { $, animationLoop, el, hiDpiCanvas, themeColors } from '../core/ui.js';
 import { radarService } from '../services/radar-service.js';
 
-const CHECK_KEY = 'sentinelle:checklist:v1';
+const CHECK_KEY = 'hiram:checklist:v1';
 
 const STEPS = [
   ['Faites le noir', 'Fermez rideaux et volets, éteignez toutes les lumières de la pièce.'],

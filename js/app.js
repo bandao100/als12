@@ -102,7 +102,7 @@ function updateBadges() {
 
 function boot() {
   // Version intégrée (aperçu) : les capteurs y sont inaccessibles, on démarre en démo.
-  if (window.SENTINELLE_DEMO === true && !settings.get('demo')) settings.set('demo', true);
+  if (window.HIRAM_DEMO === true && !settings.get('demo')) settings.set('demo', true);
   renderTabs();
   applyTheme();
   renderDemoBanner();
@@ -129,7 +129,7 @@ function boot() {
     deferredInstall = e;
   });
 
-  if ('serviceWorker' in navigator && window.isSecureContext && !window.SENTINELLE_DEMO && !isNative) {
+  if ('serviceWorker' in navigator && window.isSecureContext && !window.HIRAM_DEMO && !isNative) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 }

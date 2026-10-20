@@ -28,9 +28,9 @@ jobs:
       - name: Préparer la clé de signature
         if: env.KEYSTORE_BASE64 != ''
         run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sentinelle.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/hiram.keystore"
           {
-            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/sentinelle.keystore"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/hiram.keystore"
             echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
             echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}"
             echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}"
@@ -45,13 +45,13 @@ jobs:
           APK=android/app/build/outputs/apk/release/app-release.apk
           unzip -l "$APK" | grep -q "assets/www/index.html"
           unzip -l "$APK" | grep -q "assets/www/js/core/native.js"
-          cp "$APK" sentinelle.apk
-          ls -l sentinelle.apk
+          cp "$APK" hiram.apk
+          ls -l hiram.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: sentinelle-apk
-          path: sentinelle.apk
+          name: hiram-apk
+          path: hiram.apk
 
       - name: Publier l'APK
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
@@ -59,8 +59,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete android --cleanup-tag --yes --repo "$GITHUB_REPOSITORY" || true
-          gh release create android sentinelle.apk \
+          gh release create android hiram.apk \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "Sentinelle pour Android" \
-            --notes "APK pour Android 8 ou plus récent, conçu pour le Samsung Galaxy S25 Ultra. Sur le téléphone : téléchargez sentinelle.apk, ouvrez-le, autorisez l'installation depuis cette source, puis installez."
+            --title "Hiram pour Android" \
+            --notes "APK pour Android 8 ou plus récent, conçu pour le Samsung Galaxy S25 Ultra. Sur le téléphone : téléchargez hiram.apk, ouvrez-le, autorisez l'installation depuis cette source, puis installez."

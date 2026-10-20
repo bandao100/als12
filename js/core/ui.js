@@ -85,7 +85,7 @@ export function themeColors() {
 
 export function invalidateTheme() {
   palette = null;
-  window.dispatchEvent(new Event('sentinelle:theme'));
+  window.dispatchEvent(new Event('hiram:theme'));
 }
 
 // Maintient l'écran allumé pendant la surveillance.

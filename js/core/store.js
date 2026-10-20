@@ -1,7 +1,7 @@
 // Réglages et petites données persistées dans le navigateur.
 // Le stockage peut être indisponible (navigation privée, aperçu) : tout passe par try/catch.
 
-const KEY = 'sentinelle:settings:v1';
+const KEY = 'hiram:settings:v1';
 
 export const DEFAULTS = {
   theme: 'auto',

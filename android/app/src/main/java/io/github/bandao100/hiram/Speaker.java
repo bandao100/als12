@@ -1,4 +1,4 @@
-package io.github.bandao100.sentinelle;
+package io.github.bandao100.hiram;
 
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -42,7 +42,7 @@ final class Speaker implements TextToSpeech.OnInitListener {
     }
 
     private void say(String text) {
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "sentinelle");
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "hiram");
     }
 
     void stop() {

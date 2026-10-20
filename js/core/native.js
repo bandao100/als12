@@ -1,6 +1,6 @@
 // Pont vers l'application Android : capteurs natifs exposés par la WebView
 // (magnétomètre, boussole, Bluetooth, Wi-Fi, synthèse vocale, écran allumé).
-const bridge = typeof window !== 'undefined' ? window.SentinelleNative : undefined;
+const bridge = typeof window !== 'undefined' ? window.HiramNative : undefined;
 
 export const isNative = !!bridge;
 
@@ -8,7 +8,7 @@ const pending = new Map();
 let seq = 0;
 
 if (isNative) {
-  window.__sentinelleNative = {
+  window.__hiramNative = {
     resolve(id, json) {
       const p = pending.get(id);
       if (!p) return;
@@ -25,7 +25,7 @@ if (isNative) {
   };
 }
 
-// Appel asynchrone : l'application répond via window.__sentinelleNative.resolve.
+// Appel asynchrone : l'application répond via window.__hiramNative.resolve.
 export function nativeCall(method, ...args) {
   if (!isNative) return Promise.reject(new Error('Application Android absente'));
   const id = ++seq;

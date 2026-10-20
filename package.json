@@ -1,5 +1,5 @@
 {
-  "name": "sentinelle",
+  "name": "hiram",
   "version": "1.1.0",
   "description": "Détecteur de radars routiers, caméras cachées, champs magnétiques, Bluetooth et ultrasons (PWA).",
   "private": true,

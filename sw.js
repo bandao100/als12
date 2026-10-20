@@ -1,5 +1,5 @@
 // Service worker : l'application fonctionne hors ligne une fois chargée.
-const VERSION = 'sentinelle-v1.1.0';
+const VERSION = 'hiram-v1.1.0';
 const SHELL = [
   './',
   './index.html',
