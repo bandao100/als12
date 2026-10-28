@@ -240,6 +240,99 @@
       v + '"><span style="width:' + v + '%"></span></span>';
   }
 
+  // ------------------------------------------------------------ Animations
+
+  var mouvementReduit = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var derniersComptes = {};   // dernière valeur affichée par compteur : les montants défilent de l'ancienne à la nouvelle
+
+  function salutation() {
+    var h = new Date().getHours();
+    var d = new Date();
+    return (h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir') + ' · ' +
+      JOURS[d.getDay()] + ' ' + d.getDate() + ' ' + MOIS[d.getMonth()];
+  }
+
+  function compteur(cle, valeur, format) {
+    var texte = format === 'pct' ? pct(valeur) : fmt(valeur);
+    return '<span data-compteur="' + cle + '" data-valeur="' + valeur + '" data-format="' + (format || '') + '">' + texte + '</span>';
+  }
+
+  function anneau(taux) {
+    var r = 26, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, taux || 0));
+    return '<svg class="anneau" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="' + r + '" class="anneau-fond"/>' +
+      '<circle cx="32" cy="32" r="' + r + '" class="anneau-plein" stroke-dasharray="' + c.toFixed(1) +
+      '" stroke-dashoffset="' + (c * (1 - v)).toFixed(1) + '" data-anneau="' + c.toFixed(1) + '"/>' +
+      '<text x="32" y="36.5" text-anchor="middle">' + Math.round(v * 100) + '%</text></svg>';
+  }
+
+  /** Remplit les jauges depuis zéro et fait défiler les montants après un rendu. */
+  function animer(racine, entree) {
+    if (mouvementReduit) return;
+    if (entree) {
+      racine.classList.remove('entree');
+      void racine.offsetWidth;
+      racine.classList.add('entree');
+    }
+    var cibles = racine.querySelectorAll('.jauge > span, .barre-budget > span, .barre-budget');
+    Array.prototype.forEach.call(cibles, function (el) {
+      var largeur = el.style.width;
+      if (!entree || !largeur) return;
+      el.style.transition = 'none';
+      el.style.width = '0';
+      void el.offsetWidth;
+      el.style.transition = '';
+      requestAnimationFrame(function () { el.style.width = largeur; });
+    });
+    Array.prototype.forEach.call(racine.querySelectorAll('[data-anneau]'), function (el) {
+      if (!entree) return;
+      var cible = el.getAttribute('stroke-dashoffset');
+      el.style.transition = 'none';
+      el.setAttribute('stroke-dashoffset', el.dataset.anneau);
+      void el.getBoundingClientRect();
+      el.style.transition = '';
+      requestAnimationFrame(function () { el.setAttribute('stroke-dashoffset', cible); });
+    });
+    Array.prototype.forEach.call(racine.querySelectorAll('[data-compteur]'), function (el) {
+      var cle = el.dataset.compteur, fin = +el.dataset.valeur, pourcent = el.dataset.format === 'pct';
+      var debut = derniersComptes[cle] != null ? derniersComptes[cle] : (entree ? 0 : fin);
+      derniersComptes[cle] = fin;
+      if (debut === fin) return;
+      var t0 = null, duree = 900;
+      function pas(t) {
+        if (!el.isConnected) return;
+        if (t0 === null) t0 = t;
+        var x = Math.min(1, (t - t0) / duree), e = 1 - Math.pow(1 - x, 3), v = debut + (fin - debut) * e;
+        el.textContent = pourcent ? pct(v) : fmt(v);
+        if (x < 1) requestAnimationFrame(pas);
+      }
+      requestAnimationFrame(pas);
+    });
+  }
+
+  function vibrer(motif) {
+    try { if (navigator.vibrate) navigator.vibrate(motif); } catch (e) { /* sans vibreur */ }
+  }
+
+  /** Petite pluie de confettis aux couleurs de l'application quand un poste est soldé. */
+  function celebrer() {
+    vibrer([30, 60, 30]);
+    if (mouvementReduit) return;
+    var couleurs = ['#4472C4', '#8FE0B0', '#F0A64A', '#5B9BD5', '#23885A'];
+    var zone = document.createElement('div');
+    zone.className = 'confettis';
+    for (var i = 0; i < 36; i++) {
+      var c = document.createElement('i');
+      c.style.left = (5 + Math.random() * 90) + '%';
+      c.style.background = couleurs[i % couleurs.length];
+      c.style.animationDelay = (Math.random() * 0.25) + 's';
+      c.style.animationDuration = (1.1 + Math.random() * 0.8) + 's';
+      c.style.setProperty('--derive', (Math.random() * 120 - 60) + 'px');
+      zone.appendChild(c);
+    }
+    document.body.appendChild(zone);
+    setTimeout(function () { zone.remove(); }, 2300);
+  }
+
   function badge(statut) {
     var s = STATUTS[statut];
     return '<span class="badge ' + s.classe + '">' + s.libelle + '</span>';
@@ -314,14 +407,16 @@
 
   function vueAccueil() {
     var c = k(), t = c.total;
-    var html = '<section class="bandeau" aria-label="Synthèse">' +
+    var html = '<p class="salutation">' + esc(salutation()) + '</p>' +
+      '<section class="bandeau" aria-label="Synthèse"><div class="bandeau-haut"><div class="bandeau-texte">' +
       '<p class="bandeau-libelle">Reste à décaisser</p>' +
-      '<p class="bandeau-montant nombre">' + fmt(t.reste) + ' <small>F CFA</small></p>' + jauge(t.taux) +
-      '<div class="bandeau-pied"><span>Avancement financier</span><b class="nombre">' + pct(t.taux) + '</b></div></section>';
+      '<p class="bandeau-montant nombre">' + compteur('reste', t.reste) + ' <small>F CFA</small></p></div>' +
+      anneau(t.taux) + '</div>' + jauge(t.taux) +
+      '<div class="bandeau-pied"><span>Avancement financier</span><b class="nombre">' + compteur('taux', t.taux, 'pct') + '</b></div></section>';
 
     html += '<div class="chiffres" style="grid-template-columns:1fr 1fr">' +
-      '<div class="carte chiffre"><p class="chiffre-libelle">Budget total</p><p class="chiffre-valeur nombre">' + fmt(t.budget) + ' <small>F</small></p></div>' +
-      '<div class="carte chiffre"><p class="chiffre-libelle">Montant payé</p><p class="chiffre-valeur nombre ok">' + fmt(t.paye) + ' <small>F</small></p></div></div>' +
+      '<div class="carte chiffre"><p class="chiffre-libelle">Budget total</p><p class="chiffre-valeur nombre">' + compteur('budget', t.budget) + ' <small>F</small></p></div>' +
+      '<div class="carte chiffre"><p class="chiffre-libelle">Montant payé</p><p class="chiffre-valeur nombre ok">' + compteur('paye', t.paye) + ' <small>F</small></p></div></div>' +
       '<button class="carte ligne" style="margin-top:10px" data-action="voir-statut" data-valeur="tous">' +
       '<span class="pastille-ico">' + icone('liste') + '</span><span class="ligne-corps"><span class="ligne-titre">' + pluriel(t.nb, 'poste') + '</span>' +
       '<span class="ligne-sous">' + t.solde + ' soldé' + (t.solde > 1 ? 's' : '') + ' · ' + t.encours + ' en cours · ' + t.attente + ' en attente</span></span>' +
@@ -517,11 +612,21 @@
       if (b.dataset.onglet === ui.onglet) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
+    var aPayer = k().total.encours + k().total.attente;
+    var pastille = $('#pastille-postes');
+    pastille.textContent = aPayer > 99 ? '99+' : aPayer;
+    pastille.hidden = !aPayer;
+    animer($('#vue'), !!entreeOnglet);
+    entreeOnglet = false;
   }
+
+  var entreeOnglet = true;   // premier affichage : jauges et montants animés
 
   function allerA(onglet) {
     var change = ui.onglet !== onglet;
     ui.onglet = onglet;
+    entreeOnglet = change;
+    if (change) vibrer(8);
     rendre();
     if (change) window.scrollTo(0, 0);
   }
@@ -561,6 +666,7 @@
       }, true);
     });
     el.querySelector('.feuille-corps').innerHTML = o.rendu ? o.rendu() : o.corps;
+    animer(el.querySelector('.feuille-corps'), true);
     pile.push(f);
     document.body.appendChild(el);
     document.body.classList.add('avec-feuille');
@@ -831,6 +937,7 @@
           fermerFeuille();
           toutRafraichir();
           var s = k().parPoste[x.p.id];
+          if (s.statut === 'solde') celebrer(); else vibrer(25);
           toast(s.statut === 'solde' ? 'Paiement enregistré · poste soldé ✓' : 'Paiement enregistré · reste ' + fcfa(s.reste));
         });
 

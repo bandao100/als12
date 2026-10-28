@@ -15,8 +15,8 @@ set -euo pipefail
 RACINE="$(cd "$(dirname "$0")/.." && pwd)"
 OUTILS="${OUTILS:-$HOME/.cache/aurore-outils}"
 BUILD="$RACINE/build"
-VERSION_CODE="${VERSION_CODE:-4}"
-VERSION_NOM="${VERSION_NOM:-1.3}"
+VERSION_CODE="${VERSION_CODE:-5}"
+VERSION_NOM="${VERSION_NOM:-1.4}"
 MIN_SDK=21   # Android 5.0
 CIBLE_SDK=35
 

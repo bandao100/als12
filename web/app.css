@@ -461,3 +461,72 @@ body.avec-feuille #toast { bottom: calc(20px + max(var(--bas), env(safe-area-ins
 .vide .ico { width: 34px; height: 34px; color: var(--texte-3); margin-bottom: 8px; }
 .vide p { margin-top: 2px; }
 .grand-choix .ligne-corps { display: block; }
+
+/* ------------------------------------------------------------ Animations et éléments dynamiques */
+
+.salutation { margin: 0 2px 12px; font-size: 14px; color: var(--texte-2); }
+.bandeau-haut { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bandeau-texte { min-width: 0; }
+.anneau { width: 74px; height: 74px; flex: none; transform: rotate(-90deg); }
+.anneau circle { fill: none; stroke-width: 7; }
+.anneau-fond { stroke: rgba(255, 255, 255, .2); }
+.anneau-plein { stroke: #8FE0B0; stroke-linecap: round; transition: stroke-dashoffset 1.1s cubic-bezier(.2, .8, .2, 1); }
+.anneau text { transform: rotate(90deg); transform-origin: 32px 32px; fill: #fff; font-size: 14px; font-weight: 700; }
+
+.jauge > span, .barre-budget, .barre-budget > span { transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+
+/* Entrée d'un onglet : le contenu glisse et apparaît, les blocs en cascade */
+@keyframes glisser { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+#vue.entree > * { animation: glisser .45s cubic-bezier(.2, .8, .2, 1) both; }
+#vue.entree > *:nth-child(2) { animation-delay: .05s; }
+#vue.entree > *:nth-child(3) { animation-delay: .1s; }
+#vue.entree > *:nth-child(4) { animation-delay: .15s; }
+#vue.entree > *:nth-child(5) { animation-delay: .2s; }
+#vue.entree > *:nth-child(n+6) { animation-delay: .25s; }
+#vue.entree .carte > .ligne, #vue.entree .carte > .lot { animation: glisser .4s cubic-bezier(.2, .8, .2, 1) both; }
+#vue.entree .carte > :nth-child(2) { animation-delay: .08s; }
+#vue.entree .carte > :nth-child(3) { animation-delay: .12s; }
+#vue.entree .carte > :nth-child(4) { animation-delay: .16s; }
+#vue.entree .carte > :nth-child(n+5) { animation-delay: .2s; }
+
+/* Retour visuel au toucher */
+.ligne, .lot, .btn, .puce, .onglet, .onglet-ajout, .grand-choix, .bouton-icone, .raccourci {
+  transition: transform .12s ease, background-color .15s ease, filter .15s ease;
+}
+.ligne:active, .lot:active, .grand-choix:active { transform: scale(.985); }
+.btn:active, .puce:active, .raccourci:active { transform: scale(.96); }
+.onglet:active .ico { transform: scale(.85); }
+.onglet .ico { transition: transform .15s ease; }
+.onglet[aria-current="page"] .ico { animation: rebond .35s ease; }
+@keyframes rebond { 40% { transform: translateY(-3px) scale(1.12); } }
+.onglet-ajout:active { transform: scale(.9) rotate(90deg); }
+.onglet-ajout { transition: transform .2s ease; }
+
+/* Pastille du nombre de postes à payer */
+.ico-pastille { position: relative; display: inline-flex; }
+.pastille-nombre {
+  position: absolute; top: -5px; right: -11px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 99px; background: var(--orange); color: #fff;
+  font-size: 10.5px; font-weight: 700; line-height: 18px; text-align: center;
+  border: 2px solid var(--carte);
+}
+
+/* Pages superposées : léger fondu en plus du glissement */
+.feuille { opacity: .6; transition: transform .26s cubic-bezier(.2, .8, .2, 1), opacity .26s ease; }
+.feuille.ouverte { opacity: 1; }
+
+/* Confettis quand un poste est soldé */
+.confettis { position: fixed; left: 0; right: 0; top: 0; height: 0; z-index: 90; pointer-events: none; }
+.confettis i {
+  position: absolute; top: -12px; width: 8px; height: 13px; border-radius: 2px;
+  animation-name: tomber; animation-timing-function: cubic-bezier(.3, .6, .5, 1); animation-fill-mode: forwards;
+}
+@keyframes tomber {
+  to { transform: translate(var(--derive), 85vh) rotate(540deg); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #vue.entree > *, #vue.entree .carte > * { animation: none !important; }
+  .jauge > span, .barre-budget, .barre-budget > span, .anneau-plein, .feuille { transition: none !important; }
+  .onglet[aria-current="page"] .ico { animation: none; }
+}
