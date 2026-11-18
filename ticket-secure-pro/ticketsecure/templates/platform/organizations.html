@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Console plateforme{% endblock %}
+{% block content %}
+<div class="eyebrow">CONSOLE PLATEFORME</div>
+<h1>Organisations clientes</h1>
+<div class="stats">
+  <div class="card"><b>{{ organizations|length }}</b><small>Organisations</small></div>
+  <div class="card"><b>{{ tickets }}</b><small>Billets émis</small></div>
+  <div class="card"><b>{{ totals[0] or 0 }}</b><small>Commandes payées</small></div>
+  <div class="card"><b>{{ (totals[1] or 0)|money }}</b><small>Encaissé</small></div>
+  <div class="card"><b>{{ (totals[2] or 0)|money }}</b><small>Commissions</small></div>
+</div>
+<div class="card tablewrap"><table>
+  <thead><tr><th>Organisation</th><th>Contact</th><th>Membres</th><th>Événements</th><th>Ventes</th><th>Commission %</th><th>Statut</th><th></th></tr></thead>
+  <tbody>
+  {% for o in organizations %}
+    {% set s = sales.get(o.id, (0, 0, 0)) %}
+    <tr><td>{{ o.name }}<br><small>{{ o.slug }} · {{ o.created_at|dt('%d/%m/%Y') }}</small></td>
+      <td>{{ o.contact_email }}<br><small>{{ o.contact_phone }}</small></td>
+      <td>{{ members.get(o.id, 0) }}</td><td>{{ events.get(o.id, 0) }}</td>
+      <td>{{ s[1]|money }}<br><small>{{ s[0] }} cde(s) · net {{ (s[1]-s[2])|money }}</small></td>
+      <td><form method="post" action="{{ url_for('platform.set_fee', org_id=o.id) }}" class="inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input name="fee_percent" value="{{ o.fee_percent if o.fee_percent is not none else '' }}" placeholder="{{ config.PLATFORM_FEE_PERCENT }}" size="4"><button class="secondary small">OK</button></form></td>
+      <td><span class="pill {{ 'valid' if o.active else 'cancelled' }}">{{ 'Active' if o.active else 'Suspendue' }}</span></td>
+      <td><form method="post" action="{{ url_for('platform.toggle_status', org_id=o.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="{{ 'danger' if o.active else 'secondary' }} small" {% if o.active %}data-confirm="Suspendre {{ o.name }} ? Ses membres ne pourront plus se connecter et ses ventes seront fermées."{% endif %}>{{ 'Suspendre' if o.active else 'Réactiver' }}</button></form></td></tr>
+  {% else %}<tr><td colspan="8">Aucune organisation.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

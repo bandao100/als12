@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Ventes{% endblock %}
+{% block content %}
+{% set statuses = {'paid':'Payées','pending':'En attente','failed':'Échouées','expired':'Expirées','cancelled':'Annulées','refunded':'Remboursées','':'Toutes'} %}
+<div class="pagehead">
+  <div><div class="eyebrow">BILLETTERIE EN LIGNE</div><h1>Ventes</h1></div>
+  <a class="button secondary" href="{{ url_for('admin.export_sales') }}">Export CSV</a>
+</div>
+<div class="stats">
+{% set ns = namespace(n=0, total=0, fee=0) %}
+{% for provider, n, total, fee in totals %}{% set ns.n = ns.n + n %}{% set ns.total = ns.total + (total or 0) %}{% set ns.fee = ns.fee + (fee or 0) %}
+  <div class="card"><b>{{ (total or 0)|money }}</b><small>{{ {'wave':'Wave','orange_money':'Orange Money','card':'Carte bancaire','simulation':'Simulation','free':'Gratuit'}.get(provider, provider) }} · {{ n }} cde(s)</small></div>
+{% endfor %}
+  <div class="card"><b>{{ ns.total|money }}</b><small>Total encaissé</small></div>
+  <div class="card"><b>{{ (ns.total - ns.fee)|money }}</b><small>Net organisateur (après commission)</small></div>
+</div>
+<form method="get" class="inline filters">
+  <select name="status">{% for k, v in statuses.items() %}<option value="{{ k }}" {% if status == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+  <select name="event"><option value="">Tous les événements</option>{% for e in events %}<option value="{{ e.id }}" {% if event_id == e.id %}selected{% endif %}>{{ e.name }}</option>{% endfor %}</select>
+  <button class="secondary">Filtrer</button>
+</form>
+<div class="card tablewrap"><table>
+  <thead><tr><th>Commande</th><th>Date</th><th>Événement</th><th>Client</th><th>Billets</th><th>Montant</th><th>Moyen</th><th>Statut</th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+    <tr><td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}">{{ o.ref }}</a></td><td>{{ o.created_at|dt }}</td><td>{{ o.event.name }}</td>
+      <td>{{ o.customer_name }}<br><small>{{ o.customer_email }}</small></td><td>{{ o.quantity }}</td><td>{{ o.amount|money }}</td>
+      <td>{{ o.provider }}</td><td><span class="pill {{ o.status }}">{{ statuses.get(o.status, o.status) }}</span></td></tr>
+  {% else %}<tr><td colspan="8">Aucune commande.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

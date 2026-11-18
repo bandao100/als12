@@ -1,0 +1,13 @@
+{
+  "name": "Ticket Secure Scanner",
+  "short_name": "Scanner",
+  "description": "Contrôle des billets, avec ou sans connexion",
+  "lang": "fr",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1b2a",
+  "theme_color": "#12283f",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

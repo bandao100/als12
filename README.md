@@ -91,3 +91,7 @@ Le site n'a pas de serveur : le bouton « Préparer mon e-mail » ouvre la messa
 ## Nom de domaine
 
 Une fois le domaine acheté (par exemple chez OVHcloud), l'ajouter dans **Settings → Pages → Custom domain** et créer chez le registraire quatre enregistrements **A** vers `185.199.108.153`, `185.199.109.153`, `185.199.110.153` et `185.199.111.153`, plus un **CNAME** `www` vers `bandao100.github.io`. Cocher ensuite **Enforce HTTPS**, et remplacer l'adresse `site_url` dans `admin/config.yml` par la nouvelle adresse.
+
+## Autre projet de ce dépôt : Ticket Secure Pro
+
+Le dossier [`ticket-secure-pro/`](ticket-secure-pro/) contient une application distincte de billetterie et de contrôle d'accès (Python/Flask, PostgreSQL, application Android). Elle n'est pas publiée par GitHub Pages ; voir son propre [README](ticket-secure-pro/README.md).

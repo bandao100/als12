@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#12283f">
+  <title>Ticket Secure · Scanner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="scanner.css">
+</head>
+<body>
+<header class="bar">
+  <span class="brand">TICKET <b>SECURE</b> · SCANNER</span>
+  <span id="net" class="net off" title="État du réseau">Hors ligne</span>
+</header>
+
+<section id="setup" class="screen" hidden>
+  <h1>Connexion de l'appareil</h1>
+  <p class="muted">Connectez ce téléphone une fois avec le compte du contrôleur, réseau disponible. Il pourra ensuite contrôler sans connexion.</p>
+  <form id="setupForm" class="stack">
+    <label>Adresse du serveur<input id="server" type="url" placeholder="https://billets.exemple.com" required></label>
+    <label>E-mail<input id="email" type="email" autocomplete="username" required></label>
+    <label>Mot de passe<input id="password" type="password" autocomplete="current-password" required></label>
+    <label>Nom de l'appareil<input id="deviceName" placeholder="Téléphone porte A" required maxlength="120"></label>
+    <button id="setupBtn">Connecter l'appareil</button>
+    <p id="setupError" class="error" role="alert"></p>
+  </form>
+</section>
+
+<section id="main" class="screen" hidden>
+  <div class="who"><span id="who"></span><button id="logout" class="link">Déconnecter</button></div>
+
+  <div class="panel">
+    <label>Événement<select id="eventSel"></select></label>
+    <div class="row">
+      <button id="prepare" class="secondary">Préparer hors connexion</button>
+      <button id="syncNow" class="secondary">Synchroniser</button>
+    </div>
+    <p id="manifestInfo" class="muted small"></p>
+    <label class="row small"><span>Mode</span>
+      <select id="mode"><option value="auto">Automatique (en ligne si possible)</option><option value="offline">Hors connexion forcé</option></select>
+    </label>
+  </div>
+
+  <div id="result" class="result idle"><b>PRÊT</b><span>Présentez un QR code</span></div>
+
+  <div class="camera"><video id="video" playsinline muted></video></div>
+  <div class="row">
+    <button id="camStart">Démarrer la caméra</button>
+    <button id="camStop" class="secondary">Arrêter</button>
+  </div>
+  <div class="row">
+    <input id="manual" placeholder="Saisie manuelle : TSP3.…" autocomplete="off">
+    <button id="manualBtn" class="secondary">Vérifier</button>
+  </div>
+
+  <div class="panel">
+    <div class="row between"><b>Derniers contrôles</b><span id="queueInfo" class="muted small"></span></div>
+    <ol id="history" class="history"></ol>
+  </div>
+</section>
+
+<script src="jsQR.js"></script>
+<script src="camera.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

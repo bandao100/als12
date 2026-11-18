@@ -1,0 +1,8 @@
+<article class="card eventcard">
+  <div class="eyebrow">{{ e.starts_at|dt('%d/%m/%Y · %H:%M') }}</div>
+  <h2>{{ e.name }}</h2>
+  <p class="muted">{{ e.venue }} {{ e.city }} · par {{ e.organization.name }}</p>
+  {% set prices = e.categories|selectattr('on_sale')|map(attribute='price')|list %}
+  {% if prices %}<p><b>{{ 'Gratuit' if prices|max == 0 else 'À partir de ' ~ (prices|min)|money }}</b></p>{% endif %}
+  <a class="button" href="{{ url_for('shop.event_page', org_slug=e.organization.slug, event_slug=e.slug) }}">Réserver</a>
+</article>

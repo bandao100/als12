@@ -1,0 +1,37 @@
+name: Application Android (scanner)
+
+on:
+  push:
+    paths: ["ticket-secure-pro/android/**", "ticket-secure-pro/ticketsecure/static/scanner/**", ".github/workflows/android-scanner.yml"]
+  pull_request:
+    paths: ["ticket-secure-pro/android/**", "ticket-secure-pro/ticketsecure/static/scanner/**", ".github/workflows/android-scanner.yml"]
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "Adresse HTTPS du serveur proposée par défaut (facultatif)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ticket-secure-pro/android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compiler l'APK
+        run: ./gradlew --no-daemon assembleDebug -PdefaultServerUrl="${{ github.event.inputs.server_url }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ticket-secure-scanner-debug
+          path: ticket-secure-pro/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30

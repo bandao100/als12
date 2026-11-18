@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Paramètres{% endblock %}
+{% block content %}
+<div class="eyebrow">ORGANISATION</div>
+<h1>Paramètres</h1>
+<section class="card">
+  <form method="post" class="gridform">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nom public<input name="name" value="{{ organization.name }}" required maxlength="160"></label>
+    <label>E-mail de contact<input type="email" name="contact_email" value="{{ organization.contact_email }}"></label>
+    <label>Téléphone de contact<input name="contact_phone" value="{{ organization.contact_phone }}"></label>
+    <button>Enregistrer</button>
+  </form>
+</section>
+<section class="card">
+  <h2>Encaissements</h2>
+  <p class="muted">Les paiements Wave, Orange Money et carte sont encaissés par la plateforme, qui reverse le net à votre organisation après déduction de la commission ({{ organization.fee_percent if organization.fee_percent is not none else config.PLATFORM_FEE_PERCENT }} %). Le détail figure dans <a href="{{ url_for('admin.sales') }}">Ventes</a>.</p>
+  <p class="muted">Adresse publique de votre billetterie : <a href="{{ url_for('shop.organization', org_slug=organization.slug) }}">{{ url_for('shop.organization', org_slug=organization.slug, _external=True) }}</a></p>
+</section>
+{% endblock %}

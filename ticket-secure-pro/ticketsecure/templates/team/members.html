@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Équipe{% endblock %}
+{% block content %}
+<div class="eyebrow">GESTION DES ACCÈS</div>
+<h1>Équipe</h1>
+<div class="grid3 roles">
+  <div class="card"><b>Administrateur</b><p class="muted small">Tout : événements, ventes, paramètres, équipe complète, appareils, audit.</p></div>
+  <div class="card"><b>Superviseur</b><p class="muted small">Événements, billets, ventes, affectation et gestion des contrôleurs, appareils, audit. Pas de paramètres ni de gestion des administrateurs.</p></div>
+  <div class="card"><b>Contrôleur</b><p class="muted small">Scanner uniquement, et seulement pour les événements (et portes) auxquels il est affecté.</p></div>
+</div>
+{% if creatable %}
+<section class="card">
+  <h2>Ajouter un membre</h2>
+  <form method="post" class="gridform">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nom complet<input name="name" required maxlength="140"></label>
+    <label>E-mail<input name="email" type="email" required></label>
+    <label>Téléphone<input name="phone"></label>
+    <label>Rôle<select name="role">{% for r in creatable|reverse %}<option value="{{ r }}">{{ role_labels[r] }}</option>{% endfor %}</select></label>
+    <label>Mot de passe provisoire (vide = généré)<input name="password" minlength="12" autocomplete="new-password"></label>
+    <label class="wide">Affecter aux événements (contrôleurs)
+      <select name="event_ids" multiple size="3">{% for e in events %}<option value="{{ e.id }}">{{ e.name }} · {{ e.starts_at|dt }}</option>{% endfor %}</select></label>
+    <button>Créer le compte</button>
+  </form>
+  <p class="muted small">Le membre devra changer son mot de passe à la première connexion.</p>
+</section>
+{% endif %}
+<div class="card tablewrap"><table>
+  <thead><tr><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Événements affectés</th><th>Dernière connexion</th><th>État</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for m in members %}
+    <tr>
+      <td>{{ m.full_name }}</td><td>{{ m.email }}</td>
+      <td>{% if can_manage(m.role) and m.id != current_user.id %}
+        <form method="post" action="{{ url_for('team.change_role', member_id=m.id) }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <select name="role">{% for r in creatable %}<option value="{{ r }}" {% if r == m.role %}selected{% endif %}>{{ role_labels[r] }}</option>{% endfor %}</select>
+          <button class="secondary small">OK</button></form>
+        {% else %}{{ m.role_label }}{% endif %}</td>
+      <td class="wrap">{% for a in m.assignments %}{{ a.event.name }}{% if a.category %} ({{ a.category.name }}){% endif %}{% if not loop.last %}, {% endif %}{% else %}{{ 'Tous' if m.role != 'controller' else 'Aucun' }}{% endfor %}</td>
+      <td>{{ m.last_login_at|dt }}</td>
+      <td>{% if m.active %}<span class="pill valid">Actif</span>{% else %}<span class="pill cancelled">Désactivé</span>{% endif %}</td>
+      <td class="inline">{% if can_manage(m.role) and m.id != current_user.id %}
+        <form method="post" action="{{ url_for('team.toggle_active', member_id=m.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary small" {% if m.active %}data-confirm="Désactiver {{ m.full_name }} ? Ses appareils seront révoqués."{% endif %}>{{ 'Désactiver' if m.active else 'Réactiver' }}</button></form>
+        <form method="post" action="{{ url_for('team.reset_member_password', member_id=m.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary small" data-confirm="Générer un nouveau mot de passe provisoire ?">Nouveau mot de passe</button></form>
+      {% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

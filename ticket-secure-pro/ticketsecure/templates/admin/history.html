@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Contrôles · {{ event.name }}{% endblock %}
+{% block content %}
+{% set labels = {'accepted':'Accepté','duplicate':'Déjà utilisé','invalid':'Inconnu','cancelled':'Annulé','wrong_event':'Mauvaise porte','event_closed':'Événement annulé','conflict':'Conflit hors ligne'} %}
+<div class="pagehead">
+  <div><div class="eyebrow">JOURNAL DES CONTRÔLES</div><h1>{{ event.name }}</h1></div>
+  <a class="button secondary" href="{{ url_for('admin.event_detail', event_id=event.id) }}">Retour</a>
+</div>
+<div class="inline filters">
+  <a class="pill {% if not result %}active{% endif %}" href="{{ url_for('admin.history', event_id=event.id) }}">Tous</a>
+  {% for key, n in summary.items() %}<a class="pill {{ key }} {% if result == key %}active{% endif %}" href="{{ url_for('admin.history', event_id=event.id, result=key) }}">{{ labels.get(key, key) }} : {{ n }}</a>{% endfor %}
+</div>
+<div class="card tablewrap"><table>
+  <thead><tr><th>Heure du contrôle</th><th>Reçu</th><th>Billet</th><th>Contrôleur</th><th>Appareil</th><th>Résultat</th><th>Détail</th></tr></thead>
+  <tbody>
+  {% for l in logs %}
+    <tr><td>{{ l.scanned_at|dt('%d/%m %H:%M:%S') }}</td><td>{{ l.received_at|dt('%d/%m %H:%M:%S') }}</td>
+      <td>{{ l.ticket.ticket_no if l.ticket else '—' }}</td><td>{{ l.scanner.full_name if l.scanner else '—' }}</td>
+      <td>{{ l.device.name if l.device else 'Navigateur' }}{% if l.offline %} · hors ligne{% endif %}</td>
+      <td><span class="pill {{ l.result }}">{{ labels.get(l.result, l.result) }}</span></td><td>{{ l.detail }}</td></tr>
+  {% else %}<tr><td colspan="7">Aucun contrôle.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

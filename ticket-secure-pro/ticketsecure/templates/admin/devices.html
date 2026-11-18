@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Appareils de contrôle{% endblock %}
+{% block content %}
+<div class="eyebrow">CONTRÔLE HORS CONNEXION</div>
+<h1>Appareils de contrôle</h1>
+<p class="muted">Téléphones enregistrés dans l'application Android ou le scanner hors connexion. Révoquez immédiatement un appareil perdu ou volé : il ne pourra plus synchroniser ni valider en ligne.</p>
+<div class="card tablewrap"><table>
+  <thead><tr><th>Appareil</th><th>Contrôleur</th><th>Enregistré</th><th>Dernière activité</th><th>Dernière synchro</th><th>Conflits</th><th>État</th><th></th></tr></thead>
+  <tbody>
+  {% for d in devices %}
+    <tr><td>{{ d.name }}</td><td>{{ d.user.full_name }}</td><td>{{ d.created_at|dt }}</td><td>{{ d.last_seen_at|dt }}</td><td>{{ d.last_sync_at|dt }}</td>
+      <td>{{ conflicts.get(d.id, 0) }}</td>
+      <td>{% if d.revoked_at %}<span class="pill cancelled">Révoqué</span>{% elif d.expires_at < now %}<span class="pill expired">Expiré</span>{% else %}<span class="pill valid">Actif</span>{% endif %}</td>
+      <td>{% if not d.revoked_at %}<form method="post" action="{{ url_for('admin.revoke_device', device_id=d.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small" data-confirm="Révoquer {{ d.name }} ?">Révoquer</button></form>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="8">Aucun appareil enregistré.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+<section class="card">
+  <h2>Équiper un contrôleur</h2>
+  <ol>
+    <li>Installer l'application Android « Ticket Secure Scanner » (fichier APK fourni par l'administrateur) ou ouvrir <a href="{{ url_for('static', filename='scanner/index.html') }}">le scanner hors connexion</a> dans Chrome.</li>
+    <li>Saisir l'adresse du serveur, puis l'e-mail et le mot de passe du contrôleur.</li>
+    <li>Choisir l'événement et appuyer sur « Préparer hors connexion » tant que le réseau est disponible.</li>
+  </ol>
+</section>
+{% endblock %}

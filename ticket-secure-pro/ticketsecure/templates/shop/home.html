@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ platform_name }} · billetterie{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="eyebrow">BILLETTERIE EN LIGNE</div>
+  <h1>Vos billets en quelques secondes, payés par Wave, Orange Money ou carte</h1>
+  <p class="muted">Recevez vos billets par e-mail, présentez le QR code à l'entrée. Chaque billet n'est valable qu'une fois.</p>
+</section>
+<h2>Prochains événements</h2>
+<div class="cards">
+{% for e in events %}{% include "shop/_event_card.html" %}{% else %}<div class="card muted">Aucun événement en vente pour le moment.</div>{% endfor %}
+</div>
+{% endblock %}

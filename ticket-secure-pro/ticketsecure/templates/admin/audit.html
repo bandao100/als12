@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Journal d'audit{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><div class="eyebrow">TRAÇABILITÉ</div><h1>Journal d'audit</h1>
+  <p class="muted">Toutes les actions sensibles de votre organisation, en ajout seul. Chaque entrée est chaînée à la précédente par une empreinte SHA-256.</p></div>
+  <a class="button secondary" href="{{ url_for('admin.export_audit') }}">Export CSV</a>
+</div>
+<form method="get" class="inline filters"><select name="action"><option value="">Toutes les actions</option>{% for a in actions %}<option {% if a == action %}selected{% endif %}>{{ a }}</option>{% endfor %}</select><button class="secondary">Filtrer</button></form>
+<div class="card tablewrap"><table>
+  <thead><tr><th>#</th><th>Date</th><th>Auteur</th><th>Action</th><th>Détail</th><th>IP</th></tr></thead>
+  <tbody>
+  {% for e in entries %}<tr><td>{{ e.id }}</td><td>{{ e.created_at|dt('%d/%m/%Y %H:%M:%S') }}</td><td>{{ e.actor }}</td><td><code>{{ e.action }}</code></td><td class="wrap">{{ e.detail }}</td><td>{{ e.ip }}</td></tr>
+  {% else %}<tr><td colspan="6">Aucune entrée.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

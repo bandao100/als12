@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Scanner{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><div class="eyebrow">CONTRÔLE DES ENTRÉES · EN LIGNE</div><h1>Scanner un billet</h1>
+    <p class="muted">Le premier scan autorise l'entrée ; toute réutilisation est refusée. Sans réseau, utilisez le <a href="{{ url_for('static', filename='scanner/index.html') }}">scanner hors connexion</a> ou l'application Android.</p></div>
+</div>
+<div class="scannergrid" id="web-scanner" data-validate-url="{{ url_for('admin.scanner_validate') }}">
+  <section class="card">
+    <label>Événement contrôlé<select id="event">{% for e in events %}<option value="{{ e.id }}">{{ e.name }} · {{ e.starts_at|dt }}</option>{% else %}<option value="">Aucun événement affecté</option>{% endfor %}</select></label>
+    <div class="camera"><video id="video" playsinline muted></video></div>
+    <div class="inline"><button id="start">Démarrer la caméra</button><button id="stop" class="secondary">Arrêter</button></div>
+    <p class="muted small">La caméra exige HTTPS sur téléphone.</p>
+  </section>
+  <section class="card">
+    <div class="eyebrow">RÉSULTAT</div>
+    <div id="result" class="result">EN ATTENTE<p>Présentez un QR code.</p></div>
+    <label>Saisie manuelle du code<input id="manual" placeholder="TSP3.…" autocomplete="off"></label>
+    <button id="manualBtn">Vérifier</button>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='scanner/jsQR.js') }}"></script>
+<script src="{{ url_for('static', filename='scanner/camera.js') }}"></script>
+<script src="{{ url_for('static', filename='js/web-scanner.js') }}"></script>
+{% endblock %}

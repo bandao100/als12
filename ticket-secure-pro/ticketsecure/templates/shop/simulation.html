@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Paiement simulé{% endblock %}
+{% block content %}
+<section class="auth card">
+  <div class="eyebrow">MODE DÉMONSTRATION</div>
+  <h1>Paiement simulé</h1>
+  <p>Commande <b>{{ order.ref }}</b> · {{ order.event.name }}<br>Montant : <b>{{ order.amount|money }}</b></p>
+  <p class="muted small">Cette page remplace Wave, Orange Money ou la carte bancaire pendant les essais. Elle est désactivée en production.</p>
+  <form method="post" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button name="decision" value="pay">Simuler un paiement réussi</button>
+    <button name="decision" value="refuse" class="secondary">Simuler un refus</button>
+  </form>
+</section>
+{% endblock %}

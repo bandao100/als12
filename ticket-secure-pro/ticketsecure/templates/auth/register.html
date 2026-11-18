@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Créer votre espace organisateur{% endblock %}
+{% block content %}
+<section class="auth card">
+  <div class="eyebrow">NOUVEL ORGANISATEUR</div>
+  <h1>Créer votre espace</h1>
+  <p class="muted">Votre société dispose de ses propres événements, billets, ventes et équipe, isolés des autres organisateurs.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nom de la société ou de l'organisation<input name="organization" value="{{ form.get('organization','') }}" required maxlength="160"></label>
+    <label>Votre nom complet<input name="name" value="{{ form.get('name','') }}" required maxlength="140"></label>
+    <label>E-mail professionnel<input type="email" name="email" value="{{ form.get('email','') }}" autocomplete="username" required></label>
+    <label>Téléphone<input name="phone" value="{{ form.get('phone','') }}" placeholder="+226 70 00 00 00"></label>
+    <label>Mot de passe (12 caractères minimum)<input type="password" name="password" minlength="12" autocomplete="new-password" required></label>
+    <label class="check"><input type="checkbox" name="accept" value="1" required> J'accepte les <a href="{{ url_for('shop.terms') }}">conditions d'utilisation</a></label>
+    <button>Créer mon espace</button>
+  </form>
+  <p class="muted">Déjà inscrit ? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>
+</section>
+{% endblock %}

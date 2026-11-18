@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Impression · {{ event.name }}{% endblock %}
+{% block content %}
+<div class="printtools pagehead">
+  <h1>Billets · {{ event.name }}</h1>
+  <div class="inline">
+    <button data-print>Imprimer</button>
+    <a class="button secondary" href="{{ url_for('admin.print_pdf', event_id=event.id, id=tickets|map(attribute='id')|list) }}">Télécharger le PDF</a>
+    <a class="button secondary" href="{{ url_for('admin.event_detail', event_id=event.id) }}">Retour</a>
+  </div>
+</div>
+<div class="ticketgrid">
+{% for t in tickets %}
+  <article class="ticket">
+    <div class="tickettop"><b>{{ platform_name|upper }}</b><b>ACCÈS UNIQUE</b></div>
+    <h2>{{ event.name }}</h2>
+    <p>{{ event.starts_at|dt }} · {{ event.venue }} {{ event.city }}</p>
+    <div class="ticketbody">
+      <img src="{{ url_for('admin.ticket_qr', ticket_id=t.id) }}" alt="QR code du billet {{ t.ticket_no }}">
+      <div><small>NUMÉRO DE BILLET</small><h3>{{ t.ticket_no }}</h3>
+        <p>{{ t.category.name if t.category else 'Standard' }}{% if t.holder %} · {{ t.holder }}{% endif %}</p>
+        <p>Une seule entrée autorisée.</p></div>
+    </div>
+    <div class="ticketfoot">BILLET NON RÉUTILISABLE APRÈS VALIDATION</div>
+  </article>
+{% endfor %}
+</div>
+{% endblock %}

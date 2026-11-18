@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ organization.name }} · billetterie{% endblock %}
+{% block content %}
+<div class="eyebrow">ORGANISATEUR</div>
+<h1>{{ organization.name }}</h1>
+{% if organization.contact_email or organization.contact_phone %}<p class="muted">Contact : {{ organization.contact_email }} {{ organization.contact_phone }}</p>{% endif %}
+<div class="cards">
+{% for e in events %}{% include "shop/_event_card.html" %}{% else %}<div class="card muted">Aucun événement en vente pour le moment.</div>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+# Caddy obtient et renouvelle automatiquement le certificat HTTPS (Let's Encrypt)
+# et redirige tout le trafic HTTP vers HTTPS.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+	request_body {
+		max_size 4MB
+	}
+	reverse_proxy web:5000
+}

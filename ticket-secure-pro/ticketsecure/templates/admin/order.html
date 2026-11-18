@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Commande {{ order.ref }}{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div><div class="eyebrow">COMMANDE</div><h1>{{ order.ref }} · <span class="pill {{ order.status }}">{{ order.status }}</span></h1>
+    <p class="muted">{{ order.event.name }} · créée le {{ order.created_at|dt }}{% if order.paid_at %} · payée le {{ order.paid_at|dt }}{% endif %}</p></div>
+  <a class="button secondary" href="{{ url_for('admin.sales') }}">Retour</a>
+</div>
+<div class="grid2">
+  <section class="card">
+    <h2>Client</h2>
+    <p>{{ order.customer_name }}<br>{{ order.customer_email }}<br>{{ order.customer_phone or '' }}</p>
+    <h2>Paiement</h2>
+    <p>{{ order.amount|money }} via {{ order.provider }}<br>Commission plateforme : {{ order.fee_amount|money }}<br>
+      <small>Session : {{ order.provider_ref or '—' }} · Transaction : {{ order.provider_txn or '—' }}</small></p>
+    {% if current_user.can('orders.manage') %}
+      {% if order.status != 'paid' and order.provider not in ('free',) %}
+      <form method="post" action="{{ url_for('admin.verify_order', order_id=order.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary">Vérifier auprès du prestataire</button></form>
+      {% endif %}
+      {% if order.status == 'paid' %}
+      <form method="post" action="{{ url_for('admin.resend_order', order_id=order.id) }}" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Renvoyer les billets à (laisser vide = adresse actuelle)<input type="email" name="email" placeholder="{{ order.customer_email }}"></label>
+        <button class="secondary">Renvoyer les billets</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </section>
+  <section class="card">
+    <h2>Détail</h2>
+    <table>{% for i in order.items %}<tr><td>{{ i.category.name }}</td><td>{{ i.quantity }} × {{ i.unit_price|money }}</td></tr>{% endfor %}</table>
+    <h2>Billets</h2>
+    <table>{% for t in order.tickets %}<tr><td>{{ t.ticket_no }}</td><td><span class="pill {{ t.status }}">{{ t.status }}</span></td></tr>{% else %}<tr><td>Aucun billet émis.</td></tr>{% endfor %}</table>
+    <h2>E-mails</h2>
+    <table>{% for e in emails %}<tr><td>{{ e.created_at|dt }}</td><td>{{ e.to_email }}</td><td><span class="pill {{ e.status }}">{{ e.status }}</span></td><td><small>{{ e.last_error }}</small></td></tr>{% else %}<tr><td>Aucun envoi.</td></tr>{% endfor %}</table>
+  </section>
+</div>
+{% endblock %}

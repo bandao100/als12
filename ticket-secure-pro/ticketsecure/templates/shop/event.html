@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} · billets{% endblock %}
+{% block content %}
+<div class="grid2 shop">
+  <section>
+    <div class="eyebrow">{{ event.organization.name|upper }}</div>
+    <h1>{{ event.name }}</h1>
+    <p class="lead">{{ event.starts_at|dt('%d/%m/%Y à %H:%M') }}<br>{{ event.venue }} {{ event.city }}</p>
+    {% if event.description %}<div class="card prewrap">{{ event.description }}</div>{% endif %}
+  </section>
+  <section class="card">
+    {% if not event.on_sale %}
+      <h2>Ventes en ligne fermées</h2>
+      <p class="muted">Renseignez-vous auprès de l'organisateur.</p>
+    {% elif remaining == 0 %}
+      <h2>Complet</h2>
+    {% else %}
+    <h2>Réserver</h2>
+    <form method="post" action="{{ url_for('shop.checkout', org_slug=event.organization.slug, event_slug=event.slug) }}" class="stack" id="checkout" data-max="{{ max_qty }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <table class="buy">
+        {% for c, left in categories %}
+        <tr data-price="{{ c.price }}">
+          <td><b>{{ c.name }}</b><br><small class="muted">{{ 'Gratuit' if c.price == 0 else c.price|money }}{% if left is not none %} · {{ left }} restant(s){% endif %}</small></td>
+          <td><input type="number" class="qty" name="qty_{{ c.id }}" min="0" max="{{ [max_qty, left if left is not none else max_qty]|min }}" value="{{ form.get('qty_' ~ c.id, 0) }}" {% if left == 0 %}disabled{% endif %}></td>
+        </tr>
+        {% endfor %}
+        <tr><td><b>Total</b></td><td><b id="total" data-currency="{{ config.CURRENCY }}">—</b></td></tr>
+      </table>
+      <label>Nom complet<input name="name" value="{{ form.get('name','') }}" required maxlength="160" autocomplete="name"></label>
+      <label>E-mail (réception des billets)<input type="email" name="email" value="{{ form.get('email','') }}" required autocomplete="email"></label>
+      <label>Téléphone<input name="phone" value="{{ form.get('phone','') }}" placeholder="+226 70 00 00 00" autocomplete="tel"></label>
+      <fieldset class="providers">
+        <legend>Moyen de paiement</legend>
+        {% for p in providers %}
+        <label class="provider"><input type="radio" name="provider" value="{{ p.code }}" {% if loop.first or form.get('provider') == p.code %}checked{% endif %}><span><b>{{ p.label }}</b><small>{{ p.description }}</small></span></label>
+        {% else %}
+        <p class="muted small">Aucun moyen de paiement configuré : seuls les billets gratuits peuvent être réservés.</p>
+        {% endfor %}
+      </fieldset>
+      <label class="check"><input type="checkbox" name="accept" value="1" required> J'accepte les <a href="{{ url_for('shop.terms') }}">conditions de vente</a></label>
+      <button>Payer et recevoir mes billets</button>
+      <p class="muted small">Les places sont réservées {{ config.ORDER_HOLD_MINUTES }} minutes le temps du paiement. Vos billets sont émis dès la confirmation du paiement par l'opérateur.</p>
+    </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/shop.js') }}"></script>{% endblock %}
