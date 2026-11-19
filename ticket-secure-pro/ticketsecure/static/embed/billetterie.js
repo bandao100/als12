@@ -62,11 +62,18 @@
     return loadOrders().filter(function (o) { return o.ref === ref; })[0] || null;
   }
 
-  function currentUrlWithout(param) {
+  // Adresse de la page actuelle sans les paramètres du widget (l'ancre est conservée :
+  // les sites « une page » y gardent leur route).
+  function cleanUrl() {
     var url = new URL(location.href);
-    url.searchParams.delete(param);
-    url.hash = '';
+    url.searchParams.delete('tsp_commande');
+    url.searchParams.delete('tsp_annule');
     return url.toString();
+  }
+
+  // N'accepte que des liens http(s) venant de l'API (jamais javascript:, data:…).
+  function safeUrl(u) {
+    return typeof u === 'string' && /^https?:\/\//i.test(u) ? u : null;
   }
 
   // ------------------------------------------------------------------ composant
@@ -105,10 +112,12 @@
       } catch (e) {
         return this.fail('La billetterie est momentanément indisponible.', this.start.bind(this));
       }
-      var ref = new URLSearchParams(location.search).get('tsp_commande');
-      if (ref && findOrder(ref)) {
-        history.replaceState(history.state, '', currentUrlWithout('tsp_commande'));
-        return this.showOrder(ref, true);
+      var params = new URLSearchParams(location.search);
+      var ref = params.get('tsp_commande');
+      if (ref) {
+        // Retour depuis la page de paiement de l'opérateur.
+        try { history.replaceState(history.state, '', cleanUrl()); } catch (e) { /* ignoré */ }
+        return this.showOrder(ref, true, params.get('tsp_annule') === '1');
       }
       if (this.single && this.single.indexOf('/') > 0) {
         var parts = this.single.split('/');
@@ -282,7 +291,7 @@
     }
 
     poster(ev) {
-      if (ev.poster_url) return h('img', { src: ev.poster_url, alt: '', loading: 'lazy' });
+      if (safeUrl(ev.poster_url)) return h('img', { src: ev.poster_url, alt: '', loading: 'lazy' });
       return h('span', { class: 'noposter g-' + ev.genre, text: (ev.name || '?').charAt(0).toUpperCase() });
     }
 
@@ -431,10 +440,12 @@
             customer: { name: name.value.trim(), email: email.value.trim(), phone: phone.value.trim() },
             provider: chosen ? chosen.value : '',
             accept_terms: true,
-            return_url: currentUrlWithout('tsp_commande')
+            return_url: cleanUrl()
           } });
-          saveOrder({ ref: res.ref, key: res.key, event: ev.name, date: ev.starts_label, created: new Date().toISOString() });
+          saveOrder({ ref: res.ref, key: res.key, event: ev.name, date: ev.starts_label,
+            org: ev.organizer.slug, slug: ev.slug, created: new Date().toISOString() });
           if (res.payment_url) {
+            if (!safeUrl(res.payment_url)) throw new Error('Adresse de paiement invalide.');
             pay.textContent = 'Redirection vers le paiement…';
             window.location.assign(res.payment_url);
           } else {
@@ -466,10 +477,17 @@
     }
 
     // -------------------------------------------------------------- retour et billets
-    async showOrder(ref, fromPayment) {
+    async showOrder(ref, fromPayment, cancelled) {
       var self = this;
       var entry = findOrder(ref);
-      if (!entry) return this.fail('Commande inconnue sur cet appareil. Vos billets vous ont été envoyés par e-mail.');
+      var back = this.single ? null : this.backButton('Tous les événements', function () { self.showCatalogue(); });
+      if (!entry) {
+        // Commande passée sur un autre appareil ou navigateur : la clé d'accès n'est pas ici.
+        return this.render([back, h('div', { class: 'state' }, [
+          h('h2', { text: 'Commande ' + ref }),
+          h('p', { text: 'Dès que le paiement est confirmé, vos billets vous sont envoyés par e-mail (pensez aux courriers indésirables).' })
+        ])]);
+      }
       this.scrollTop();
       var attempts = 0;
       var poll = async function () {
@@ -479,6 +497,19 @@
         } catch (e) {
           if (attempts++ < 20) { setTimeout(poll, 3000); return; }
           return self.fail('Impossible de vérifier la commande. Vos billets vous seront envoyés par e-mail dès confirmation.');
+        }
+        if (data.status === 'pending' && cancelled) {
+          // Le client est revenu par « annuler » : on ne le fait pas attendre.
+          return self.render([back, h('div', { class: 'state' }, [
+            h('h2', { text: 'Paiement non finalisé' }),
+            h('p', { text: 'Si vous avez annulé, aucun montant n\'a été débité. Si vous avez payé, la confirmation peut prendre quelques instants.' }),
+            h('div', { class: 'actions' }, [
+              h('button', { class: 'btn', text: 'Vérifier à nouveau', onclick: function () { cancelled = false; attempts = 0; self.loading('Vérification du paiement…'); poll(); } }),
+              entry.org && entry.slug ? h('button', { class: 'btn ghost', text: 'Recommencer la réservation',
+                onclick: function () { self.showEvent(entry.org, entry.slug); } }) : null
+            ]),
+            h('p', { class: 'muted small', text: 'Commande ' + ref })
+          ])]);
         }
         if (data.status === 'pending' && attempts++ < 40) {
           self.render([h('div', { class: 'state' }, [h('div', { class: 'spinner' }),
@@ -514,13 +545,13 @@
           h('p', { class: 'when', text: data.event.starts_label + ' · ' + [data.event.venue, data.event.city].filter(Boolean).join(', ') }),
           h('p', { class: 'muted', text: 'Une copie a été envoyée à ' + data.customer_email + '. Présentez chaque QR code à l\'entrée : une seule entrée par billet.' }),
           h('div', { class: 'actions' }, [
-            h('a', { class: 'btn', href: data.pdf_url, target: '_blank', rel: 'noopener', text: 'Télécharger les billets (PDF)' }),
-            h('a', { class: 'btn ghost', href: data.order_url, target: '_blank', rel: 'noopener', text: 'Ouvrir sur la billetterie' })
+            safeUrl(data.pdf_url) ? h('a', { class: 'btn', href: data.pdf_url, target: '_blank', rel: 'noopener', text: 'Télécharger les billets (PDF)' }) : null,
+            safeUrl(data.order_url) ? h('a', { class: 'btn ghost', href: data.order_url, target: '_blank', rel: 'noopener', text: 'Ouvrir sur la billetterie' }) : null
           ])
         ]),
         h('div', { class: 'tickets' }, data.tickets.map(function (t) {
           return h('div', { class: 'ticket' + (t.status !== 'valid' ? ' off' : '') }, [
-            t.qr_url ? h('img', { src: t.qr_url, alt: 'QR code du billet ' + t.number }) : h('span', { class: 'void', text: 'ANNULÉ' }),
+            safeUrl(t.qr_url) ? h('img', { src: t.qr_url, alt: 'QR code du billet ' + t.number }) : h('span', { class: 'void', text: 'ANNULÉ' }),
             h('div', {}, [h('strong', { text: t.number }), h('span', { class: 'muted', text: t.category }),
               t.status === 'used' ? h('span', { class: 'badge', text: 'Déjà utilisé' }) : null])
           ]);

@@ -15,6 +15,7 @@ x-app-env: &app-env
   PLATFORM_FEE_PERCENT: ${PLATFORM_FEE_PERCENT:-5}
   APP_TIMEZONE: ${APP_TIMEZONE:-Africa/Ouagadougou}
   CURRENCY: ${CURRENCY:-XOF}
+  EMBED_ORIGINS: ${EMBED_ORIGINS:-}
   PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-}
   PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
   WAVE_API_KEY: ${WAVE_API_KEY:-}
@@ -58,6 +59,8 @@ services:
       db:
         condition: service_healthy
     environment: *app-env
+    volumes:
+      - media_data:/app/media   # affiches des événements
 
   worker:
     build: .
@@ -97,12 +100,15 @@ services:
       PGDATABASE: ticketsecure
       BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
       BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      MEDIA_DIR: /media
     volumes:
       - ./backups:/backups
       - ./scripts:/scripts:ro
+      - media_data:/media:ro
     command: ["sh", "/scripts/backup-loop.sh"]
 
 volumes:
   postgres_data:
+  media_data:
   caddy_data:
   caddy_config:

@@ -30,6 +30,7 @@ def app(tmp_path):
         "SERVER_NAME": "billets.test",
         "PAYMENT_SIMULATION": True,
         "MAIL_SERVER": "",
+        "MEDIA_FOLDER": str(tmp_path / "media"),
     })
     with app.app_context():
         _db.drop_all()

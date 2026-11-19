@@ -135,4 +135,4 @@ def return_redirect(order, cancelled=False):
     query.append(("tsp_commande", order.ref))
     if cancelled:
         query.append(("tsp_annule", "1"))
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
