@@ -2,9 +2,7 @@
 
 Interdit en production (voir config._check_production).
 """
-from flask import url_for
-
-from .base import Provider
+from .base import Provider, external_url
 
 
 class SimulationProvider(Provider):
@@ -17,4 +15,4 @@ class SimulationProvider(Provider):
 
     def start(self, order):
         order.provider_ref = "SIM-" + order.ref
-        return url_for("shop.simulated_payment", ref=order.ref)
+        return external_url("shop.simulated_payment", ref=order.ref)

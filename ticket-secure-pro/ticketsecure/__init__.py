@@ -24,11 +24,13 @@ def create_app(overrides=None):
     migrate.init_app(app, db, directory=os.path.join(os.path.dirname(__file__), "..", "migrations"),
                      render_as_batch=True)
 
-    from .blueprints import admin, api, auth, platform, shop, team, webhooks
-    for bp in (auth.bp, admin.bp, team.bp, platform.bp, shop.bp, webhooks.bp, api.bp):
+    from . import media
+    from .blueprints import admin, api, auth, platform, public_api, shop, team, webhooks
+    for bp in (auth.bp, admin.bp, team.bp, platform.bp, shop.bp, webhooks.bp, api.bp, public_api.bp, media.bp):
         app.register_blueprint(bp)
-    csrf.exempt(webhooks.bp)  # authentifiés par signature du prestataire
-    csrf.exempt(api.bp)       # authentifiés par jeton d'appareil (pas de cookie)
+    csrf.exempt(webhooks.bp)    # authentifiés par signature du prestataire
+    csrf.exempt(api.bp)         # authentifiés par jeton d'appareil (pas de cookie)
+    csrf.exempt(public_api.bp)  # sans cookie : origine contrôlée (CORS) et données publiques
 
     @app.route("/health")
     def health():
@@ -66,6 +68,8 @@ CSP = ("default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script
 
 
 def _register_security_headers(app):
+    from .blueprints import public_api
+
     @app.after_request
     def headers(response):
         h = response.headers
@@ -79,6 +83,9 @@ def _register_security_headers(app):
             h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         if request.blueprint in ("admin", "team", "platform", "auth", "api") or request.path.startswith("/commande"):
             h["Cache-Control"] = "no-store"
+        if request.blueprint == "public_api":
+            public_api.add_cors_headers(response)
+            return response
         # CORS limité à l'API des appareils (application Android).
         origin = request.headers.get("Origin")
         if request.blueprint == "api" and origin and origin in app.config["CORS_ORIGINS"]:
@@ -92,7 +99,7 @@ def _register_security_headers(app):
 
 def _register_errors(app):
     def wants_json():
-        return request.blueprint in ("api", "webhooks") or request.path.startswith("/api/")
+        return request.blueprint in ("api", "webhooks", "public_api") or request.path.startswith("/api/")
 
     def page(code, title, message):
         if wants_json():

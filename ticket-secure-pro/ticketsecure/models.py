@@ -53,11 +53,17 @@ class Organization(db.Model):
     contact_email = db.Column(db.String(190), default="")
     contact_phone = db.Column(db.String(40), default="")
     fee_percent = db.Column(db.Numeric(5, 2), nullable=True)  # None = taux plateforme
+    # Sites autorisés à intégrer la billetterie (une origine https://… par ligne).
+    embed_origins = db.Column(db.Text, nullable=False, default="")
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
     @property
     def active(self):
         return self.status == "active"
+
+    @property
+    def embed_origin_list(self):
+        return [o.strip().rstrip("/") for o in (self.embed_origins or "").splitlines() if o.strip()]
 
 
 class User(db.Model):
@@ -86,6 +92,23 @@ class User(db.Model):
         return ROLE_LABELS.get(self.role, self.role)
 
 
+# Genres d'événements proposés dans la billetterie publique.
+GENRES = {
+    "concert": "Concerts",
+    "festival": "Festivals",
+    "soiree": "Soirées",
+    "theatre": "Théâtre",
+    "humour": "Humour",
+    "sport": "Sport",
+    "cinema": "Cinéma",
+    "conference": "Conférences",
+    "formation": "Formations",
+    "religion": "Cultes",
+    "famille": "Famille",
+    "autre": "Autres",
+}
+
+
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     organization_id = db.Column(db.Integer, db.ForeignKey("organization.id"), nullable=False, index=True)
@@ -100,6 +123,9 @@ class Event(db.Model):
     status = db.Column(db.String(20), nullable=False, default="draft")
     online_sales = db.Column(db.Boolean, nullable=False, default=True)
     offline_scan_allowed = db.Column(db.Boolean, nullable=False, default=True)
+    genre = db.Column(db.String(30), nullable=False, default="autre", index=True)
+    poster = db.Column(db.String(80), nullable=True)  # nom du fichier d'affiche (dossier media)
+    featured = db.Column(db.Boolean, nullable=False, default=False)  # « À la une », décidé par la plateforme
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
     organization = db.relationship("Organization", backref="events")
@@ -110,6 +136,15 @@ class Event(db.Model):
     @property
     def on_sale(self):
         return self.status == "published" and self.online_sales and self.organization.active
+
+    @property
+    def genre_label(self):
+        return GENRES.get(self.genre, GENRES["autre"])
+
+    @property
+    def min_price(self):
+        prices = [c.price for c in self.categories if c.on_sale]
+        return min(prices) if prices else None
 
 
 class TicketCategory(db.Model):
@@ -166,6 +201,8 @@ class Order(db.Model):
     fee_amount = db.Column(db.Integer, nullable=False, default=0)
     currency = db.Column(db.String(8), nullable=False, default="XOF")
     client_ip = db.Column(db.String(64), default="")
+    # Commande passée depuis un site partenaire : page où renvoyer le client après paiement.
+    return_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     paid_at = db.Column(db.DateTime)

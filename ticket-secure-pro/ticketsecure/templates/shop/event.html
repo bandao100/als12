@@ -3,7 +3,8 @@
 {% block content %}
 <div class="grid2 shop">
   <section>
-    <div class="eyebrow">{{ event.organization.name|upper }}</div>
+    {% if event.poster %}<img class="eventposter" src="{{ url_for('media.poster', name=event.poster) }}" alt="Affiche de {{ event.name }}">{% endif %}
+    <div class="eyebrow">{{ event.genre_label|upper }} · <a href="{{ url_for('shop.organization', org_slug=event.organization.slug) }}">{{ event.organization.name|upper }}</a></div>
     <h1>{{ event.name }}</h1>
     <p class="lead">{{ event.starts_at|dt('%d/%m/%Y à %H:%M') }}<br>{{ event.venue }} {{ event.city }}</p>
     {% if event.description %}<div class="card prewrap">{{ event.description }}</div>{% endif %}

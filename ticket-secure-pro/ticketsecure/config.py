@@ -49,7 +49,11 @@ def build_config(overrides=None):
         SESSION_COOKIE_SECURE=_bool("COOKIE_SECURE", "1" if production else "0"),
         PERMANENT_SESSION_LIFETIME=timedelta(hours=_int("SESSION_HOURS", 10)),
         PREFERRED_URL_SCHEME="https" if production else "http",
-        MAX_CONTENT_LENGTH=4 * 1024 * 1024,
+        MAX_CONTENT_LENGTH=8 * 1024 * 1024,
+        MEDIA_FOLDER=env.get("MEDIA_FOLDER", os.path.join(os.getcwd(), "media")),
+        # Sites autorisés à intégrer la billetterie de TOUTE la plateforme (en plus de ceux
+        # déclarés par chaque organisateur), séparés par des virgules.
+        EMBED_ORIGINS=[o.strip().rstrip("/") for o in env.get("EMBED_ORIGINS", "").split(",") if o.strip()],
         WTF_CSRF_TIME_LIMIT=None,  # le jeton CSRF vit autant que la session
         APP_TIMEZONE=env.get("APP_TIMEZONE", "Africa/Ouagadougou"),
         CURRENCY=env.get("CURRENCY", "XOF"),

@@ -1,0 +1,11 @@
+<form method="get" class="filterbar" role="search">
+  <input name="q" value="{{ filters.q }}" placeholder="Rechercher un événement, un lieu, un artiste…" aria-label="Rechercher">
+  <select name="ville" aria-label="Ville"><option value="">Toutes les villes</option>{% for c in cities %}<option {% if c|lower == filters.city|lower %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+  {% if filters.genre %}<input type="hidden" name="genre" value="{{ filters.genre }}">{% endif %}
+  <button>Rechercher</button>
+</form>
+<nav class="chips" aria-label="Genres">
+  {% set base = request.path %}
+  <a class="chip {% if not filters.genre %}active{% endif %}" href="{{ base }}?q={{ filters.q|urlencode }}&ville={{ filters.city|urlencode }}">Tout</a>
+  {% for code, label in genres.items() %}<a class="chip {% if filters.genre == code %}active{% endif %}" href="{{ base }}?genre={{ code }}&q={{ filters.q|urlencode }}&ville={{ filters.city|urlencode }}">{{ label }}</a>{% endfor %}
+</nav>

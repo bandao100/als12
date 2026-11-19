@@ -60,6 +60,26 @@ def set_fee(org_id):
     return redirect(url_for("platform.organizations"))
 
 
+@bp.route("/evenements")
+@platform_required
+def events():
+    rows = db.session.scalars(select(Event).where(Event.status.in_(("published", "closed")))
+                              .order_by(Event.featured.desc(), Event.starts_at.desc()).limit(300)).all()
+    return render_template("platform/events.html", events=rows)
+
+
+@bp.route("/evenements/<int:event_id>/une", methods=["POST"])
+@platform_required
+def toggle_featured(event_id):
+    event = db.session.get(Event, event_id) or abort(404)
+    event.featured = not event.featured
+    audit("event_featured" if event.featured else "event_unfeatured", f"#{event.id} {event.name}",
+          organization_id=event.organization_id)
+    db.session.commit()
+    flash(f"« {event.name} » {'mis à la une' if event.featured else 'retiré de la une'}.", "success")
+    return redirect(url_for("platform.events"))
+
+
 @bp.route("/audit")
 @platform_required
 def audit_log():

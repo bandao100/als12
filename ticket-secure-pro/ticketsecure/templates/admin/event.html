@@ -6,7 +6,7 @@
   <div>
     <div class="eyebrow">ÉVÉNEMENT #{{ event.id }} · <span class="pill {{ event.status }}">{{ statuses[event.status] }}</span></div>
     <h1>{{ event.name }}</h1>
-    <p class="muted">{{ event.starts_at|dt }} · {{ event.venue }} {{ event.city }}</p>
+    <p class="muted">{{ event.starts_at|dt }} · {{ event.venue }} {{ event.city }} · {{ event.genre_label }}{% if event.featured %} · <span class="pill published">À la une</span>{% endif %}</p>
     {% if event.status in ('published','closed') %}<p class="muted small">Page publique : <a href="{{ url_for('shop.event_page', org_slug=event.organization.slug, event_slug=event.slug) }}">{{ url_for('shop.event_page', org_slug=event.organization.slug, event_slug=event.slug, _external=True) }}</a></p>{% endif %}
   </div>
   {% if u.can('events.manage') %}
@@ -19,6 +19,8 @@
   </form>
   {% endif %}
 </div>
+
+{% if event.poster %}<img class="eventposter" src="{{ url_for('media.poster', name=event.poster) }}" alt="Affiche de {{ event.name }}">{% else %}<p class="muted small">Pas encore d'affiche : ajoutez-en une dans « Modifier l'événement », elle apparaîtra sur la billetterie et dans le widget.</p>{% endif %}
 
 {% if conflicts %}<div class="flash error">{{ conflicts }} conflit(s) hors connexion détecté(s) : un même billet a été admis sur plusieurs appareils. <a href="{{ url_for('admin.history', event_id=event.id, result='conflict') }}">Voir le détail</a></div>{% endif %}
 
@@ -100,13 +102,16 @@
 {% if u.can('events.manage') %}
 <details class="card">
   <summary><h2>Modifier l'événement</h2></summary>
-  <form class="gridform" method="post" action="{{ url_for('admin.update_event', event_id=event.id) }}">
+  <form class="gridform" method="post" action="{{ url_for('admin.update_event', event_id=event.id) }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Nom<input name="name" value="{{ event.name }}" required maxlength="180"></label>
     <label>Date et heure<input type="datetime-local" name="starts_at" value="{{ starts_input }}" required></label>
     <label>Lieu<input name="venue" value="{{ event.venue }}"></label>
     <label>Ville<input name="city" value="{{ event.city }}"></label>
     <label>Capacité (0 = illimitée)<input type="number" min="0" name="capacity" value="{{ event.capacity }}"></label>
+    <label>Genre<select name="genre">{% for code, label in genres.items() %}<option value="{{ code }}" {% if code == event.genre %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label>{{ 'Remplacer l\'affiche' if event.poster else 'Affiche' }} (JPEG, PNG ou WebP)<input type="file" name="poster" accept="image/jpeg,image/png,image/webp"></label>
+    {% if event.poster %}<label class="check"><input type="checkbox" name="remove_poster" value="1"> Retirer l'affiche actuelle</label>{% endif %}
     <label class="check"><input type="checkbox" name="online_sales" value="1" {% if event.online_sales %}checked{% endif %}> Vente en ligne</label>
     <label class="check"><input type="checkbox" name="offline_scan_allowed" value="1" {% if event.offline_scan_allowed %}checked{% endif %}> Contrôle hors connexion autorisé</label>
     <label class="wide">Description<textarea name="description" rows="3">{{ event.description }}</textarea></label>

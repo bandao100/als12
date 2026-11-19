@@ -12,7 +12,7 @@
 
 <details class="card" {% if not events %}open{% endif %}>
   <summary><h2>Créer un événement</h2></summary>
-  <form class="gridform" method="post" action="{{ url_for('admin.create_event') }}">
+  <form class="gridform" method="post" action="{{ url_for('admin.create_event') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Nom<input name="name" required maxlength="180"></label>
     <label>Date et heure<input type="datetime-local" name="starts_at" required></label>
@@ -20,6 +20,8 @@
     <label>Ville<input name="city" maxlength="120"></label>
     <label>Capacité (0 = illimitée)<input type="number" min="0" name="capacity" value="0"></label>
     <label>Prix du billet standard<input type="number" min="0" name="price" value="0"></label>
+    <label>Genre<select name="genre">{% for code, label in genres.items() %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></label>
+    <label>Affiche (JPEG, PNG ou WebP)<input type="file" name="poster" accept="image/jpeg,image/png,image/webp"></label>
     <label class="check"><input type="checkbox" name="online_sales" value="1" checked> Vente en ligne</label>
     <label class="check"><input type="checkbox" name="offline_scan_allowed" value="1" checked> Contrôle hors connexion autorisé</label>
     <label class="wide">Description<textarea name="description" rows="3" maxlength="4000"></textarea></label>
@@ -31,6 +33,7 @@
 <div class="cards">
 {% for event, total, used, revenue in events %}
   <article class="card">
+    {% if event.poster %}<img class="cardposter" src="{{ url_for('media.poster', name=event.poster) }}" alt="">{% endif %}
     <div class="eyebrow">{{ event.starts_at|dt }} · <span class="pill {{ event.status }}">{{ statuses[event.status] }}</span></div>
     <h2>{{ event.name }}</h2>
     <p class="muted">{{ event.venue }} {{ event.city }}</p>

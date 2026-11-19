@@ -1,8 +1,14 @@
-<article class="card eventcard">
-  <div class="eyebrow">{{ e.starts_at|dt('%d/%m/%Y · %H:%M') }}</div>
-  <h2>{{ e.name }}</h2>
-  <p class="muted">{{ e.venue }} {{ e.city }} · par {{ e.organization.name }}</p>
-  {% set prices = e.categories|selectattr('on_sale')|map(attribute='price')|list %}
-  {% if prices %}<p><b>{{ 'Gratuit' if prices|max == 0 else 'À partir de ' ~ (prices|min)|money }}</b></p>{% endif %}
-  <a class="button" href="{{ url_for('shop.event_page', org_slug=e.organization.slug, event_slug=e.slug) }}">Réserver</a>
-</article>
+<a class="evcard" href="{{ url_for('shop.event_page', org_slug=e.organization.slug, event_slug=e.slug) }}">
+  <div class="evposter {% if not e.poster %}noposter g-{{ e.genre }}{% endif %}">
+    {% if e.poster %}<img src="{{ url_for('media.poster', name=e.poster) }}" alt="" loading="lazy">{% else %}<span>{{ e.name[:1]|upper }}</span>{% endif %}
+    <div class="evdate"><b>{{ e.starts_at|dt('%d') }}</b><small>{{ ['JANV','FÉVR','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'][(e.starts_at|dt('%m'))|int - 1] }}</small></div>
+    <span class="evgenre">{{ e.genre_label }}</span>
+  </div>
+  <div class="evbody">
+    <h3>{{ e.name }}</h3>
+    <p class="muted">{{ e.starts_at|dt('%H:%M') }} · {{ e.venue }}{% if e.city %}, {{ e.city }}{% endif %}</p>
+    <p class="muted small">{{ e.organization.name }}</p>
+    {% set price = e.min_price %}
+    <p class="evprice">{% if price is none %}—{% elif price == 0 %}Gratuit{% else %}Dès {{ price|money }}{% endif %}</p>
+  </div>
+</a>

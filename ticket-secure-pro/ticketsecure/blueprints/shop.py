@@ -1,12 +1,12 @@
 """Billetterie publique : pages d'événements, commande, paiement, remise des billets."""
 from flask import (Blueprint, abort, current_app, flash, redirect, render_template, request, send_file,
                    session, url_for)
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 
 from ..delivery import order_access_key, qr_png, send_order_tickets, tickets_pdf
 from ..extensions import db
-from ..models import Event, Order, Organization, Ticket, utcnow
-from ..orders import OrderError, confirm_payment, create_order, mark_failed
+from ..models import GENRES, Event, Order, Organization, Ticket, utcnow
+from ..orders import OrderError, confirm_payment, create_order, mark_failed, return_redirect
 from ..payments import PaymentError, enabled_providers, get_provider
 from ..security import audit, constant_equals
 from ..tickets import available, ticket_token
@@ -15,18 +15,42 @@ from ..utils import valid_email, valid_phone
 bp = Blueprint("shop", __name__)
 
 
-def _published_events(org_id=None):
-    q = (select(Event).join(Organization)
-         .where(Event.status == "published", Organization.status == "active",
-                Event.starts_at >= utcnow().replace(hour=0, minute=0, second=0)))
+def _published_events(org_id=None, q="", genre="", city="", featured=None, limit=100):
+    start_of_day = utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    query = (select(Event).join(Organization)
+             .where(Event.status == "published", Organization.status == "active", Event.starts_at >= start_of_day))
     if org_id:
-        q = q.where(Event.organization_id == org_id)
-    return db.session.scalars(q.order_by(Event.starts_at).limit(100)).all()
+        query = query.where(Event.organization_id == org_id)
+    if q:
+        like = f"%{q[:80]}%"
+        query = query.where(or_(Event.name.ilike(like), Event.venue.ilike(like), Event.city.ilike(like),
+                                Organization.name.ilike(like)))
+    if genre in GENRES:
+        query = query.where(Event.genre == genre)
+    if city:
+        query = query.where(func.lower(Event.city) == city.lower()[:120])
+    if featured is not None:
+        query = query.where(Event.featured.is_(featured))
+    return db.session.scalars(query.order_by(Event.starts_at, Event.id).limit(limit)).all()
+
+
+def _filters():
+    return {"q": request.args.get("q", "").strip()[:80], "genre": request.args.get("genre", ""),
+            "city": request.args.get("ville", "").strip()[:120]}
+
+
+def _cities(org_id=None):
+    return sorted({e.city.strip() for e in _published_events(org_id, limit=500) if e.city and e.city.strip()},
+                  key=str.lower)
 
 
 @bp.route("/")
 def home():
-    return render_template("shop/home.html", events=_published_events())
+    f = _filters()
+    filtering = any(f.values())
+    return render_template("shop/home.html", events=_published_events(**f), filters=f, filtering=filtering,
+                           featured=[] if filtering else _published_events(featured=True, limit=8),
+                           genres=GENRES, cities=_cities())
 
 
 @bp.route("/o/<org_slug>")
@@ -34,7 +58,9 @@ def organization(org_slug):
     org = db.session.scalar(select(Organization).where(Organization.slug == org_slug))
     if not org or not org.active:
         abort(404)
-    return render_template("shop/organization.html", organization=org, events=_published_events(org.id))
+    f = _filters()
+    return render_template("shop/organization.html", organization=org, events=_published_events(org.id, **f),
+                           filters=f, genres=GENRES, cities=_cities(org.id))
 
 
 def _public_event(org_slug, event_slug):
@@ -139,6 +165,9 @@ def payment_return(ref):
             elif status == "failed":
                 mark_failed(order, "· retour client")
                 db.session.commit()
+    if order.return_url:
+        # Commande passée depuis un site partenaire : le widget y affiche le résultat.
+        return redirect(return_redirect(order, cancelled=bool(request.args.get("error"))))
     mine = ref in session.get("my_orders", [])
     if order.status == "paid" and mine:
         return redirect(url_for("shop.order_page", ref=order.ref, key=order_access_key(order)))

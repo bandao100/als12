@@ -1,13 +1,29 @@
 {% extends "base.html" %}
-{% block title %}{{ platform_name }} · billetterie{% endblock %}
+{% block title %}{{ platform_name }} · billetterie en ligne{% endblock %}
 {% block content %}
 <section class="hero">
   <div class="eyebrow">BILLETTERIE EN LIGNE</div>
-  <h1>Vos billets en quelques secondes, payés par Wave, Orange Money ou carte</h1>
-  <p class="muted">Recevez vos billets par e-mail, présentez le QR code à l'entrée. Chaque billet n'est valable qu'une fois.</p>
+  <h1>Concerts, festivals, spectacles, sport : réservez en quelques secondes</h1>
+  <p class="muted">Payez par Wave, Orange Money ou carte bancaire. Recevez vos billets par e-mail et présentez le QR code à l'entrée.</p>
 </section>
-<h2>Prochains événements</h2>
-<div class="cards">
-{% for e in events %}{% include "shop/_event_card.html" %}{% else %}<div class="card muted">Aucun événement en vente pour le moment.</div>{% endfor %}
+{% include "shop/_filters.html" %}
+
+{% if featured %}
+<section>
+  <h2>À la une</h2>
+  <div class="featured">
+    {% for e in featured %}
+    <a class="feature" href="{{ url_for('shop.event_page', org_slug=e.organization.slug, event_slug=e.slug) }}">
+      {% if e.poster %}<img src="{{ url_for('media.poster', name=e.poster) }}" alt="">{% else %}<div class="noposter g-{{ e.genre }}"></div>{% endif %}
+      <div class="featuretext"><span class="evgenre">{{ e.genre_label }}</span><h3>{{ e.name }}</h3><p>{{ e.starts_at|dt('%d/%m/%Y · %H:%M') }} · {{ e.city or e.venue }}</p></div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<h2>{% if filtering %}{{ events|length }} résultat(s){% else %}Prochains événements{% endif %}</h2>
+<div class="evgrid">
+{% for e in events %}{% include "shop/_event_card.html" %}{% else %}<div class="card muted">Aucun événement ne correspond à votre recherche.</div>{% endfor %}
 </div>
 {% endblock %}

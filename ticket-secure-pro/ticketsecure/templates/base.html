@@ -17,6 +17,7 @@
   <nav>
     {% if u.role == 'platform_admin' %}
       <a href="{{ url_for('platform.organizations') }}">Organisations</a>
+      <a href="{{ url_for('platform.events') }}">Événements</a>
       <a href="{{ url_for('platform.audit_log') }}">Audit</a>
     {% else %}
       {% if u.can('events.manage') %}<a href="{{ url_for('admin.dashboard') }}">Événements</a>{% endif %}
@@ -25,7 +26,7 @@
       {% if u.can('team.view') %}<a href="{{ url_for('team.members') }}">Équipe</a>{% endif %}
       {% if u.can('devices.manage') %}<a href="{{ url_for('admin.devices') }}">Appareils</a>{% endif %}
       {% if u.can('audit.view') %}<a href="{{ url_for('admin.audit_log') }}">Audit</a>{% endif %}
-      {% if u.can('settings.manage') %}<a href="{{ url_for('admin.settings') }}">Paramètres</a>{% endif %}
+      {% if u.can('settings.manage') %}<a href="{{ url_for('admin.integration') }}">Intégration</a><a href="{{ url_for('admin.settings') }}">Paramètres</a>{% endif %}
     {% endif %}
     <span class="who" title="{{ u.email }}">{{ u.full_name }} · {{ u.role_label }}</span>
     <a href="{{ url_for('auth.change_password') }}">Mot de passe</a>

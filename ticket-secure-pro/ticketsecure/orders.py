@@ -1,6 +1,7 @@
 """Commandes de la billetterie en ligne : réservation, confirmation, émission."""
 from datetime import timedelta
 from decimal import Decimal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from flask import current_app
 from sqlalchemy import select
@@ -120,3 +121,18 @@ def expire_pending_orders():
     for order in rows:
         order.status = "expired"
     return len(rows)
+
+
+def return_redirect(order, cancelled=False):
+    """Page du site partenaire où renvoyer le client après le paiement (``?tsp_commande=REF``).
+
+    ``order.return_url`` a été validé à la création de la commande (origine autorisée).
+    ``cancelled`` : le client a abandonné ou l'opérateur a signalé une erreur (``tsp_annule=1``).
+    """
+    parts = urlsplit(order.return_url)
+    query = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+             if k not in ("tsp_commande", "tsp_annule")]
+    query.append(("tsp_commande", order.ref))
+    if cancelled:
+        query.append(("tsp_annule", "1"))
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), ""))

@@ -8,7 +8,8 @@ from sqlalchemy import case, func, or_, select
 
 from ..delivery import order_page_url, qr_png, send_order_tickets, tickets_pdf
 from ..extensions import db
-from ..models import (ADMIN, CONTROLLER, SUPERVISOR, AuditLog, Device, Event, EventAssignment, Order,
+from ..media import PosterError, delete_poster, save_poster
+from ..models import (ADMIN, CONTROLLER, GENRES, SUPERVISOR, AuditLog, Device, Event, EventAssignment, Order,
                       ScanLog, Ticket, TicketCategory, User, utcnow)
 from ..orders import confirm_payment, mark_failed
 from ..payments import get_provider
@@ -71,7 +72,7 @@ def _event_stats(org_id):
 def dashboard():
     user = current_user()
     return render_template("admin/dashboard.html", events=_event_stats(user.organization_id),
-                           organization=user.organization, statuses=EVENT_STATUSES)
+                           organization=user.organization, statuses=EVENT_STATUSES, genres=GENRES)
 
 
 # --- Événements ----------------------------------------------------------------------
@@ -100,6 +101,24 @@ def _event_from_form(event, form):
     event.capacity = _int(form.get("capacity"), 0, lo=0, hi=1_000_000)
     event.online_sales = form.get("online_sales") == "1"
     event.offline_scan_allowed = form.get("offline_scan_allowed") == "1"
+    genre = form.get("genre", "autre")
+    event.genre = genre if genre in GENRES else "autre"
+    return None
+
+
+def _apply_poster(event):
+    """Enregistre, remplace ou retire l'affiche envoyée avec le formulaire. Retourne une erreur ou None."""
+    upload = request.files.get("poster")
+    if upload and upload.filename:
+        try:
+            name = save_poster(upload)
+        except PosterError as exc:
+            return str(exc)
+        delete_poster(event.poster)
+        event.poster = name
+    elif request.form.get("remove_poster") == "1" and event.poster:
+        delete_poster(event.poster)
+        event.poster = None
     return None
 
 
@@ -108,8 +127,9 @@ def _event_from_form(event, form):
 def create_event():
     user = current_user()
     event = Event(organization_id=user.organization_id)
-    error = _event_from_form(event, request.form)
+    error = _event_from_form(event, request.form) or _apply_poster(event)
     if error:
+        db.session.rollback()
         flash(error, "error")
         return redirect(url_for("admin.dashboard"))
     event.slug = _unique_slug(user.organization_id, event.name)
@@ -152,6 +172,7 @@ def event_detail(event_id):
     return render_template("admin/event.html", event=event, tickets=tickets, counts=counts,
                            per_category=per_category, revenue=revenue, members=members, q=q,
                            conflicts=conflicts, statuses=EVENT_STATUSES, starts_input=utc_to_input(event.starts_at),
+                           genres=GENRES,
                            remaining=available(event))
 
 
@@ -159,7 +180,7 @@ def event_detail(event_id):
 @permission_required("events.manage")
 def update_event(event_id):
     event = org_scoped(Event, event_id)
-    error = _event_from_form(event, request.form)
+    error = _event_from_form(event, request.form) or _apply_poster(event)
     if error:
         db.session.rollback()
         flash(error, "error")
@@ -532,6 +553,35 @@ def settings():
             flash("Paramètres enregistrés.", "success")
         return redirect(url_for("admin.settings"))
     return render_template("admin/settings.html", organization=org)
+
+
+@bp.route("/integration", methods=["GET", "POST"])
+@permission_required("settings.manage")
+def integration():
+    """Sites autorisés à intégrer la billetterie de l'organisation, et code à copier."""
+    from .public_api import _origin_of
+    org = current_user().organization
+    if request.method == "POST":
+        origins, rejected = [], []
+        for line in request.form.get("embed_origins", "").splitlines()[:20]:
+            line = line.strip()
+            if not line:
+                continue
+            origin = _origin_of(line)
+            (origins if origin else rejected).append(origin or line)
+        if rejected:
+            flash("Adresses ignorées (https:// obligatoire) : " + ", ".join(rejected[:5]), "error")
+        org.embed_origins = "\n".join(dict.fromkeys(origins))
+        audit("embed_origins_updated", ", ".join(origins) or "aucun site")
+        db.session.commit()
+        flash("Sites autorisés enregistrés.", "success")
+        return redirect(url_for("admin.integration"))
+    from ..payments.base import external_url
+    events = db.session.scalars(select(Event).where(Event.organization_id == org.id, Event.status == "published")
+                                .order_by(Event.starts_at)).all()
+    return render_template("admin/integration.html", organization=org, events=events,
+                           script_url=external_url("static", filename="embed/billetterie.js"),
+                           api_url=external_url("public_api.list_events"))
 
 
 # --- Scanner web (en ligne) ---------------------------------------------------------------
