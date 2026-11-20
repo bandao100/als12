@@ -36,16 +36,27 @@ MAX_PAGE_SIZE = 48
 
 # --- Origines autorisées -------------------------------------------------------------------
 def _origin_of(url):
+    """Origine (schéma://hôte[:port]) d'une adresse, ou None si elle est refusée.
+
+    Les formes que Python et les navigateurs ne lisent pas de la même façon sont
+    refusées : barre oblique inverse, identifiants avant l'hôte (« @ »), espaces et
+    caractères de contrôle. Exemple : https://pirate.test\\@monsite.com désigne
+    monsite.com pour Python mais pirate.test pour un navigateur.
+    """
+    if not isinstance(url, str) or "\\" in url or any(ord(c) <= 32 or ord(c) == 127 for c in url):
+        return None
     try:
         parts = urlsplit(url)
+        port = parts.port
     except ValueError:
         return None
-    if parts.scheme not in ("https", "http") or not parts.hostname:
+    if parts.scheme not in ("https", "http") or not parts.hostname or "@" in parts.netloc:
         return None
     if parts.scheme == "http" and parts.hostname not in ("localhost", "127.0.0.1"):
         return None  # HTTPS obligatoire, sauf essais locaux
-    port = f":{parts.port}" if parts.port else ""
-    return f"{parts.scheme}://{parts.hostname}{port}"
+    if (parts.scheme, port) in (("https", 443), ("http", 80)):
+        port = None  # port par défaut : absent de l'en-tête Origin des navigateurs
+    return f"{parts.scheme}://{parts.hostname}" + (f":{port}" if port else "")
 
 
 def own_origin():

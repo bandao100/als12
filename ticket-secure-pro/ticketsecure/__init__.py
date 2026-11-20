@@ -9,7 +9,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from .config import build_config
 from .extensions import csrf, db, migrate
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 
 
 def create_app(overrides=None):

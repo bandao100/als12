@@ -1,8 +1,30 @@
-# Ticket Secure Pro — V3
+# Ticket Secure Pro — V3.1
 
-Plateforme de billetterie en ligne et de contrôle d'accès par QR code à usage unique, pour plusieurs sociétés organisatrices sur une même installation.
+Plateforme de billetterie en ligne et de contrôle d'accès par QR code à usage unique, pour plusieurs sociétés organisatrices sur une même installation. La billetterie s'intègre en deux lignes à n'importe quel site ou application web.
 
-## Ce que la V3 apporte
+## Documentation
+
+| Document | Pour qui |
+|---|---|
+| [Guide de l'organisateur](docs/01-guide-organisateur.md) | Sociétés qui vendent des billets |
+| [Guide du contrôleur](docs/02-guide-controleur.md) | Personnes qui contrôlent à l'entrée |
+| [Intégrer la billetterie à votre site](docs/03-guide-integration-site-web.md) | Responsables de site ou d'application web |
+| [Installation et mise en production](docs/04-guide-installation-production.md) | Responsable technique |
+| [Référence de l'API publique](docs/05-reference-api.md) | Développeurs |
+
+Les mêmes guides, illustrés, existent en PDF dans `docs/pdf/`. Des exemples d'intégration (HTML, React, Vue) sont dans `exemples/`.
+
+## Nouveautés de la V3.1 : billetterie publique et intégration
+
+| Fonction | Ce qui est livré |
+|---|---|
+| **Place de marché** | Page d'accueil de la plateforme avec les événements de tous les organisateurs : affiches, recherche, filtres par genre et par ville, événements « à la une » choisis par la plateforme. |
+| **Affiches et genres** | Chaque événement a une affiche (ré-encodée et nettoyée à l'envoi) et un genre (concert, festival, sport, théâtre…). |
+| **Widget intégrable** | `<tsp-billetterie>` : la billetterie complète dans votre propre page (catalogue, fiche, choix des billets, paiement, billets avec QR au retour), en deux lignes de code, isolée dans un Shadow DOM, sans cookie. |
+| **Sites autorisés** | Chaque organisateur déclare les sites qui peuvent vendre ses billets (menu Intégration) ; le client n'est renvoyé après paiement que vers ces sites. |
+| **API publique** | `/api/public/v1` : catalogue, fiche, commande, statut et billets, pour construire une interface sur mesure. |
+
+## Fonctions de la V3
 
 | Évolution | Ce qui est livré |
 |---|---|
@@ -113,7 +135,7 @@ Pour une diffusion large (Play Store ou MDM), signer l'APK de version : définir
 
 ## Sauvegardes et restauration
 
-Le service `backup` crée chaque jour `backups/ticketsecure-AAAAMMJJ-HHMMSS.dump`, vérifie qu'il est lisible, enregistre son empreinte SHA-256 et supprime les sauvegardes de plus de 14 jours. **Copiez régulièrement le dossier `backups/` hors du serveur** (autre machine, stockage externe) : une sauvegarde sur le même disque ne protège pas d'une panne de ce disque.
+Le service `backup` crée chaque jour `backups/ticketsecure-AAAAMMJJ-HHMMSS.dump` (base de données) et `backups/media-AAAAMMJJ-HHMMSS.tar.gz` (affiches), vérifie la sauvegarde de la base, enregistre les empreintes SHA-256 et supprime les sauvegardes de plus de 14 jours. La restauration des affiches est décrite dans le guide d'installation. **Copiez régulièrement le dossier `backups/` hors du serveur** (autre machine, stockage externe) : une sauvegarde sur le même disque ne protège pas d'une panne de ce disque.
 
 Restaurer (remplace les données actuelles) :
 
@@ -151,7 +173,7 @@ Avec PostgreSQL (active en plus le test de validation concurrente) :
 TEST_DATABASE_URL=postgresql://utilisateur:motdepasse@localhost/ticketsecure_test pytest -q
 ```
 
-Les tests couvrent : rôles et isolation entre organisateurs, CSRF, limitation des connexions, usage unique et concurrence, affectations par porte, achat complet, réservation de capacité, notifications Wave/Stripe/Orange Money (signature, rejeu, montant), API des appareils, synchronisation idempotente et conflits, révocation, audit chaîné, neutralisation des formules dans les exports CSV. Ils tournent automatiquement sur GitHub Actions (SQLite et PostgreSQL), avec une vérification que les migrations correspondent aux modèles.
+Les tests couvrent : catalogue et API publique, commande depuis un site partenaire, origines refusées, affiches, rôles et isolation entre organisateurs, CSRF, limitation des connexions, usage unique et concurrence, affectations par porte, achat complet, réservation de capacité, notifications Wave/Stripe/Orange Money (signature, rejeu, montant), API des appareils, synchronisation idempotente et conflits, révocation, audit chaîné, neutralisation des formules dans les exports CSV. Ils tournent automatiquement sur GitHub Actions (SQLite et PostgreSQL), avec une vérification que les migrations correspondent aux modèles.
 
 ## Structure
 
@@ -163,11 +185,16 @@ ticketsecure/            application Flask
   orders.py              commandes, réservations, confirmation de paiement
   delivery.py            PDF, QR, e-mails
   payments/              Wave, Orange Money, Stripe, simulation
-  blueprints/            auth, espace organisateur, équipe, plateforme, billetterie, webhooks, API appareils
+  media.py               affiches des événements
+  blueprints/            auth, espace organisateur, équipe, plateforme, billetterie, webhooks,
+                         API des appareils, API publique
   static/scanner/        scanner hors connexion (PWA), aussi embarqué dans l'application Android
+  static/embed/          widget de billetterie intégrable
 migrations/              migrations Alembic
 android/                 application Android
 scripts/                 sauvegarde et restauration
+docs/                    guides (Markdown et PDF) et captures d'écran
+exemples/                intégration HTML, React et Vue
 tests/                   tests automatisés
 ```
 

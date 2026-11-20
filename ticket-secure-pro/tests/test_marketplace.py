@@ -223,3 +223,13 @@ def test_marketplace_pages_with_filters(client, world, db):
     assert client.get(f"/o/{world['a'].slug}?q=Concert").status_code == 200
     for asset in ("/static/embed/billetterie.js", "/static/embed/billetterie.css"):
         assert client.get(asset).status_code == 200
+
+
+def test_return_url_cannot_be_disguised(client, world, db):
+    """Adresses lues différemment par Python et par les navigateurs : refusées."""
+    allow_partner(db, world["a"])
+    for tricky in ("https://pirate.test\\@partenaire.test/", "https://pirate.test@partenaire.test/",
+                   "https://partenaire.test\t.pirate.test/", " https://partenaire.test/"):
+        assert api_order(client, world["ev_a"], return_url=tricky).status_code == 400, tricky
+    # Port par défaut et « @ » dans les paramètres : acceptés.
+    assert api_order(client, world["ev_a"], return_url=PARTNER + ":443/page?email=a@b.test").status_code == 201
