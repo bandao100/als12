@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Commande {{ order.ref }}{% endblock %}
+{% block head %}{% if order.status == 'pending' %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
+{% block content %}
+<section class="auth card">
+  <div class="eyebrow">COMMANDE {{ order.ref }}</div>
+  {% if order.status == 'paid' %}
+    <h1>Paiement confirmé</h1>
+    <p>Vos billets ont été envoyés à l'adresse indiquée lors de la commande. Pensez à vérifier vos courriers indésirables.</p>
+  {% elif order.status == 'pending' %}
+    <h1>Paiement en cours de confirmation…</h1>
+    <p class="muted">Nous attendons la confirmation de l'opérateur. Cette page se met à jour automatiquement.</p>
+    {% if cancelled %}<p class="muted">Si vous avez annulé le paiement, vous pouvez <a href="{{ url_for('shop.event_page', org_slug=order.event.organization.slug, event_slug=order.event.slug) }}">recommencer</a>.</p>{% endif %}
+  {% else %}
+    <h1>Paiement non abouti</h1>
+    <p class="muted">Aucun billet n'a été émis et rien n'a été débité pour cette commande.</p>
+    <a class="button" href="{{ url_for('shop.event_page', org_slug=order.event.organization.slug, event_slug=order.event.slug) }}">Réessayer</a>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+Bonjour {{ order.customer_name }},
+
+Merci pour votre achat. Votre paiement de {{ money(order.amount, order.currency) }} est confirmé.
+
+Événement : {{ order.event.name }}
+Date : {{ fmt_dt(order.event.starts_at) }}
+Lieu : {{ order.event.venue }} {{ order.event.city }}
+Commande : {{ order.ref }}
+
+Vos {{ tickets|length }} billet(s) sont joints à ce message (PDF). Vous pouvez aussi les afficher à tout moment ici :
+{{ url }}
+
+{% for t in tickets %}- {{ t.ticket_no }} · {{ t.category.name if t.category else 'Standard' }}
+{% endfor %}
+Chaque QR code donne droit à une seule entrée. Ne le partagez pas : la première personne qui le présente entre, les copies sont refusées.
+
+{{ platform }}

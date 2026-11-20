@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Intégrer la billetterie à votre site{% endblock %}
+{% block content %}
+<div class="eyebrow">INTÉGRATION</div>
+<h1>Vendre vos billets sur votre propre site</h1>
+<p class="muted">Copiez deux lignes dans n'importe quelle page de votre site (HTML, WordPress, Wix, React, Vue…) : vos événements s'affichent avec affiches, filtres, choix des billets et paiement Wave, Orange Money ou carte. Les billets sont émis par la plateforme et envoyés par e-mail ; le client revient ensuite sur votre site, où ses billets s'affichent.</p>
+
+<section class="card">
+  <h2>1. Autoriser votre site</h2>
+  <p class="muted small">Une adresse par ligne, en https:// (par exemple https://www.monsite.com). Seuls ces sites peuvent vendre vos billets et y renvoyer vos clients après paiement.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <textarea name="embed_origins" rows="4" placeholder="https://www.monsite.com">{{ organization.embed_origins }}</textarea>
+    <button>Enregistrer</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>2. Copier le code dans votre page</h2>
+  <p class="muted small">Toute votre billetterie (liste de vos événements, recherche, filtres) :</p>
+  {% set snippet_all %}<script src="{{ script_url }}" defer></script>
+<tsp-billetterie organisateur="{{ organization.slug }}"></tsp-billetterie>{% endset %}
+  <pre class="code" id="snippet-all">{{ snippet_all|forceescape }}</pre>
+  <button class="secondary" data-copy="snippet-all">Copier le code</button>
+
+  {% if events %}
+  <p class="muted small">Un seul événement (page dédiée, bouton « Réserver ») :</p>
+  {% set first = events[0] %}
+  {% set snippet_one %}<script src="{{ script_url }}" defer></script>
+<tsp-billetterie evenement="{{ organization.slug }}/{{ first.slug }}"></tsp-billetterie>{% endset %}
+  <pre class="code" id="snippet-one">{{ snippet_one|forceescape }}</pre>
+  <button class="secondary" data-copy="snippet-one">Copier le code</button>
+  <p class="muted small">Identifiants de vos événements publiés : {% for e in events %}<code>{{ organization.slug }}/{{ e.slug }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>Options</h2>
+  <table>
+    <tr><td><code>organisateur="…"</code></td><td>N'affiche que vos événements (sinon : tous les événements de la plateforme).</td></tr>
+    <tr><td><code>evenement="organisateur/evenement"</code></td><td>Ouvre directement la réservation d'un événement.</td></tr>
+    <tr><td><code>couleur="#e4572e"</code></td><td>Couleur principale (boutons, prix), pour s'accorder à votre charte.</td></tr>
+    <tr><td><code>titre="Nos prochains spectacles"</code></td><td>Titre affiché au-dessus du catalogue.</td></tr>
+    <tr><td><code>filtres="non"</code></td><td>Masque la recherche et les filtres.</td></tr>
+  </table>
+  <p class="muted small">Pour les développeurs : API JSON publique <code>{{ api_url }}</code> (documentation dans le README).</p>
+</section>
+
+<section class="card">
+  <h2>Aperçu</h2>
+  <tsp-billetterie organisateur="{{ organization.slug }}" filtres="non"></tsp-billetterie>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='embed/billetterie.js') }}" defer></script>{% endblock %}

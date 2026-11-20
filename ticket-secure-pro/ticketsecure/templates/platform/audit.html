@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Audit plateforme{% endblock %}
+{% block content %}
+<div class="eyebrow">TRAÇABILITÉ</div>
+<h1>Journal d'audit de la plateforme</h1>
+{% if chain_ok %}
+<div class="flash success">Chaîne d'audit intègre : {{ chain_count }} entrée(s) vérifiée(s). Empreinte de tête : <code>{{ head }}</code> — notez-la régulièrement hors de la plateforme pour détecter aussi une suppression des dernières entrées.</div>
+{% else %}
+<div class="flash error">ANOMALIE : la chaîne d'audit est rompue à l'entrée #{{ chain_bad }}. Une entrée a été modifiée ou supprimée directement en base.</div>
+{% endif %}
+<div class="card tablewrap"><table>
+  <thead><tr><th>#</th><th>Date</th><th>Org.</th><th>Auteur</th><th>Action</th><th>Détail</th><th>IP</th></tr></thead>
+  <tbody>
+  {% for e in entries %}<tr><td>{{ e.id }}</td><td>{{ e.created_at|dt('%d/%m/%Y %H:%M:%S') }}</td><td>{{ e.organization_id or '—' }}</td><td>{{ e.actor }}</td><td><code>{{ e.action }}</code></td><td class="wrap">{{ e.detail }}</td><td>{{ e.ip }}</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

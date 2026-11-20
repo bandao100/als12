@@ -1,0 +1,114 @@
+# Déploiement de production : PostgreSQL + application + Caddy (HTTPS automatique)
+# + sauvegardes quotidiennes + tâches de maintenance.
+# Préparer le fichier .env (voir .env.example), puis : docker compose up -d --build
+
+x-app-env: &app-env
+  APP_ENV: production
+  DATABASE_URL: postgresql://ticketapp:${POSTGRES_PASSWORD}@db:5432/ticketsecure
+  SECRET_KEY: ${SECRET_KEY:?Définir SECRET_KEY dans .env}
+  TICKET_SECRET: ${TICKET_SECRET:?Définir TICKET_SECRET dans .env}
+  PUBLIC_BASE_URL: https://${DOMAIN}
+  COOKIE_SECURE: "1"
+  TRUST_PROXY: "1"
+  PAYMENT_SIMULATION: "0"
+  PLATFORM_NAME: ${PLATFORM_NAME:-Ticket Secure Pro}
+  PLATFORM_FEE_PERCENT: ${PLATFORM_FEE_PERCENT:-5}
+  APP_TIMEZONE: ${APP_TIMEZONE:-Africa/Ouagadougou}
+  CURRENCY: ${CURRENCY:-XOF}
+  EMBED_ORIGINS: ${EMBED_ORIGINS:-}
+  PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-}
+  PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
+  WAVE_API_KEY: ${WAVE_API_KEY:-}
+  WAVE_WEBHOOK_SECRET: ${WAVE_WEBHOOK_SECRET:-}
+  ORANGE_CLIENT_ID: ${ORANGE_CLIENT_ID:-}
+  ORANGE_CLIENT_SECRET: ${ORANGE_CLIENT_SECRET:-}
+  ORANGE_MERCHANT_KEY: ${ORANGE_MERCHANT_KEY:-}
+  ORANGE_COUNTRY: ${ORANGE_COUNTRY:-}
+  ORANGE_CURRENCY: ${ORANGE_CURRENCY:-}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  MAIL_SERVER: ${MAIL_SERVER:-}
+  MAIL_PORT: ${MAIL_PORT:-587}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  MAIL_USE_TLS: ${MAIL_USE_TLS:-1}
+  MAIL_USE_SSL: ${MAIL_USE_SSL:-0}
+  MAIL_FROM: ${MAIL_FROM:-billets@example.com}
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ticketsecure
+      POSTGRES_USER: ticketapp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ticketapp -d ticketsecure"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Aucun port publié : la base n'est joignable que par les conteneurs.
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: *app-env
+    volumes:
+      - media_data:/app/media   # affiches des événements
+
+  worker:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_started
+    environment: *app-env
+    # Expire les réservations abandonnées, purge les compteurs, vérifie le journal d'audit.
+    command: ["sh", "-c", "while true; do flask maintenance; flask verify-audit || echo 'ALERTE AUDIT'; sleep 600; done"]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [web]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?Définir DOMAIN dans .env}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  backup:
+    image: postgres:16
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ticketapp
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ticketsecure
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      MEDIA_DIR: /media
+    volumes:
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+      - media_data:/media:ro
+    command: ["sh", "/scripts/backup-loop.sh"]
+
+volumes:
+  postgres_data:
+  media_data:
+  caddy_data:
+  caddy_config:

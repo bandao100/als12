@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Mot de passe oublié{% endblock %}
+{% block content %}
+<section class="auth card">
+  <div class="eyebrow">RÉCUPÉRATION</div>
+  <h1>Mot de passe oublié</h1>
+  <p class="muted">Indiquez votre adresse : un lien valable une heure vous sera envoyé.</p>
+  <form method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>E-mail<input type="email" name="email" required></label>
+    <button>Envoyer le lien</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ticket Secure Scanner</string>
+    <string name="camera_denied">Autorisez l\'accès à la caméra pour scanner les billets.</string>
+</resources>

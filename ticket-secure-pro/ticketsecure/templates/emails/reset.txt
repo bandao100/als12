@@ -1,0 +1,8 @@
+Bonjour {{ user.full_name }},
+
+Une réinitialisation du mot de passe de votre compte a été demandée.
+Pour choisir un nouveau mot de passe, ouvrez ce lien (valable une heure, utilisable une seule fois) :
+
+{{ link }}
+
+Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.

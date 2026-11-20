@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Vos billets · {{ order.event.name }}{% endblock %}
+{% block content %}
+<div class="pagehead printtools">
+  <div><div class="eyebrow">COMMANDE {{ order.ref }}</div><h1>Vos billets</h1>
+    <p class="muted">{{ order.event.name }} · {{ order.event.starts_at|dt }} · {{ order.event.venue }} {{ order.event.city }}</p></div>
+  {% if order.status == 'paid' %}<div class="inline"><a class="button" href="{{ url_for('shop.order_pdf', ref=order.ref, key=key) }}">Télécharger le PDF</a><button class="secondary" data-print>Imprimer</button></div>{% endif %}
+</div>
+{% if order.status != 'paid' %}
+  <div class="card">Cette commande n'est pas payée ({{ order.status }}). Aucun billet n'est disponible.</div>
+{% else %}
+<p class="flash">Présentez chaque QR code à l'entrée, sur votre téléphone ou imprimé. <b>Une seule entrée par billet</b> : ne partagez pas ces codes.</p>
+<div class="ticketgrid">
+{% for t in tickets %}
+  <article class="ticket">
+    <div class="tickettop"><b>{{ platform_name|upper }}</b><b>{{ t.category.name|upper if t.category else 'ACCÈS UNIQUE' }}</b></div>
+    <h2>{{ order.event.name }}</h2>
+    <p>{{ order.event.starts_at|dt }} · {{ order.event.venue }}</p>
+    <div class="ticketbody">
+      {% if t.status == 'cancelled' %}<div class="voided">ANNULÉ</div>{% else %}<img src="{{ url_for('shop.order_ticket_qr', ref=order.ref, key=key, ticket_id=t.id) }}" alt="QR code du billet {{ t.ticket_no }}">{% endif %}
+      <div><small>NUMÉRO DE BILLET</small><h3>{{ t.ticket_no }}</h3><p>{{ t.holder }}</p>
+        {% if t.status == 'used' %}<p class="pill used">Utilisé le {{ t.used_at|dt }}</p>{% endif %}</div>
+    </div>
+    <div class="ticketfoot">BILLET NON RÉUTILISABLE APRÈS VALIDATION</div>
+  </article>
+{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

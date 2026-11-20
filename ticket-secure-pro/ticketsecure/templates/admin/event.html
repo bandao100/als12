@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }}{% endblock %}
+{% block content %}
+{% set u = current_user %}
+<div class="pagehead">
+  <div>
+    <div class="eyebrow">ÉVÉNEMENT #{{ event.id }} · <span class="pill {{ event.status }}">{{ statuses[event.status] }}</span></div>
+    <h1>{{ event.name }}</h1>
+    <p class="muted">{{ event.starts_at|dt }} · {{ event.venue }} {{ event.city }} · {{ event.genre_label }}{% if event.featured %} · <span class="pill published">À la une</span>{% endif %}</p>
+    {% if event.status in ('published','closed') %}<p class="muted small">Page publique : <a href="{{ url_for('shop.event_page', org_slug=event.organization.slug, event_slug=event.slug) }}">{{ url_for('shop.event_page', org_slug=event.organization.slug, event_slug=event.slug, _external=True) }}</a></p>{% endif %}
+  </div>
+  {% if u.can('events.manage') %}
+  <form method="post" action="{{ url_for('admin.event_status', event_id=event.id) }}" class="inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if event.status != 'published' %}<button name="status" value="published">Publier</button>{% endif %}
+    {% if event.status == 'published' %}<button name="status" value="closed" class="secondary">Clore les ventes</button>{% endif %}
+    {% if event.status != 'draft' and event.status != 'cancelled' %}<button name="status" value="draft" class="secondary">Repasser en brouillon</button>{% endif %}
+    {% if event.status != 'cancelled' %}<button name="status" value="cancelled" class="danger" data-confirm="Annuler l'événement ? Tous les billets seront refusés au contrôle.">Annuler</button>{% endif %}
+  </form>
+  {% endif %}
+</div>
+
+{% if event.poster %}<img class="eventposter" src="{{ url_for('media.poster', name=event.poster) }}" alt="Affiche de {{ event.name }}">{% else %}<p class="muted small">Pas encore d'affiche : ajoutez-en une dans « Modifier l'événement », elle apparaîtra sur la billetterie et dans le widget.</p>{% endif %}
+
+{% if conflicts %}<div class="flash error">{{ conflicts }} conflit(s) hors connexion détecté(s) : un même billet a été admis sur plusieurs appareils. <a href="{{ url_for('admin.history', event_id=event.id, result='conflict') }}">Voir le détail</a></div>{% endif %}
+
+<div class="stats">
+  <div class="card"><b>{{ (counts.get('valid',0) + counts.get('used',0)) }}</b><small>Billets émis</small></div>
+  <div class="card"><b>{{ counts.get('used',0) }}</b><small>Entrées validées</small></div>
+  <div class="card"><b>{{ counts.get('valid',0) }}</b><small>Pas encore entrés</small></div>
+  <div class="card"><b>{{ '∞' if remaining is none else remaining }}</b><small>Places disponibles</small></div>
+  <div class="card"><b>{{ revenue|money }}</b><small>Ventes en ligne</small></div>
+</div>
+
+<section class="card">
+  <h2>Catégories de billets</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Nom</th><th>Prix</th><th>Quota (0 = libre)</th><th>Émis</th><th>En vente</th><th></th></tr></thead>
+    <tbody>
+    {% set dis = '' if u.can('events.manage') else 'disabled' %}
+    {% for c in event.categories %}
+      <tr>
+        <td><form id="cat{{ c.id }}" method="post" action="{{ url_for('admin.update_category', category_id=c.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"></form>
+          <input form="cat{{ c.id }}" name="name" value="{{ c.name }}" maxlength="120" {{ dis }}></td>
+        <td><input form="cat{{ c.id }}" type="number" min="0" name="price" value="{{ c.price }}" {{ dis }}></td>
+        <td><input form="cat{{ c.id }}" type="number" min="0" name="quota" value="{{ c.quota }}" {{ dis }}></td>
+        <td>{{ per_category.get(c.id, 0) }}</td>
+        <td><input form="cat{{ c.id }}" type="checkbox" name="on_sale" value="1" {% if c.on_sale %}checked{% endif %} {{ dis }}></td>
+        <td>{% if u.can('events.manage') %}<button form="cat{{ c.id }}" class="secondary small">Enregistrer</button>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% if u.can('events.manage') %}
+  <form class="gridform" method="post" action="{{ url_for('admin.add_category', event_id=event.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nouvelle catégorie<input name="name" placeholder="VIP, Étudiant, Gradins…" required></label>
+    <label>Prix<input type="number" min="0" name="price" value="0"></label>
+    <label>Quota<input type="number" min="0" name="quota" value="0"></label>
+    <button>Ajouter</button>
+  </form>
+  {% endif %}
+</section>
+
+{% if u.can('tickets.generate') %}
+<section class="card">
+  <h2>Émettre des billets (guichet, invitations)</h2>
+  <form class="gridform" method="post" action="{{ url_for('admin.generate', event_id=event.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Quantité (1–500)<input type="number" name="quantity" min="1" max="500" value="10" required></label>
+    <label>Catégorie<select name="category_id"><option value="">Sans catégorie</option>{% for c in event.categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
+    <label>Titulaire (facultatif)<input name="holder" maxlength="160"></label>
+    <button>Générer et imprimer</button>
+  </form>
+</section>
+{% endif %}
+
+<section class="card" id="controleurs">
+  <h2>Contrôleurs affectés</h2>
+  <p class="muted small">Un contrôleur ne peut scanner que les événements auxquels il est affecté. Restreindre une affectation à une catégorie (une porte) garantit l'usage unique même sans connexion : chaque billet n'est alors connu que des appareils de sa porte.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Membre</th><th>Rôle</th><th>Catégorie / porte</th><th></th></tr></thead>
+    <tbody>
+    {% for a in event.assignments %}
+      <tr><td>{{ a.user.full_name }}</td><td>{{ a.user.role_label }}</td>
+        <td>{{ a.category.name if a.category else 'Toutes catégories' }}{% if a.gate %} · {{ a.gate }}{% endif %}</td>
+        <td>{% if u.can('team.manage_controllers') %}<form method="post" action="{{ url_for('admin.remove_assignment', assignment_id=a.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="secondary small">Retirer</button></form>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="4">Aucun contrôleur affecté. Administrateurs et superviseurs peuvent contrôler tous les événements.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% if u.can('team.manage_controllers') and members %}
+  <form class="gridform" method="post" action="{{ url_for('admin.add_assignment', event_id=event.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Membre<select name="user_id">{% for m in members %}<option value="{{ m.id }}">{{ m.full_name }} ({{ m.role_label }})</option>{% endfor %}</select></label>
+    <label>Catégorie<select name="category_id"><option value="">Toutes</option>{% for c in event.categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></label>
+    <label>Porte (libellé)<input name="gate" maxlength="60" placeholder="Porte A"></label>
+    <button>Affecter</button>
+  </form>
+  {% endif %}
+</section>
+
+{% if u.can('events.manage') %}
+<details class="card">
+  <summary><h2>Modifier l'événement</h2></summary>
+  <form class="gridform" method="post" action="{{ url_for('admin.update_event', event_id=event.id) }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Nom<input name="name" value="{{ event.name }}" required maxlength="180"></label>
+    <label>Date et heure<input type="datetime-local" name="starts_at" value="{{ starts_input }}" required></label>
+    <label>Lieu<input name="venue" value="{{ event.venue }}"></label>
+    <label>Ville<input name="city" value="{{ event.city }}"></label>
+    <label>Capacité (0 = illimitée)<input type="number" min="0" name="capacity" value="{{ event.capacity }}"></label>
+    <label>Genre<select name="genre">{% for code, label in genres.items() %}<option value="{{ code }}" {% if code == event.genre %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label>{{ 'Remplacer l\'affiche' if event.poster else 'Affiche' }} (JPEG, PNG ou WebP)<input type="file" name="poster" accept="image/jpeg,image/png,image/webp"></label>
+    {% if event.poster %}<label class="check"><input type="checkbox" name="remove_poster" value="1"> Retirer l'affiche actuelle</label>{% endif %}
+    <label class="check"><input type="checkbox" name="online_sales" value="1" {% if event.online_sales %}checked{% endif %}> Vente en ligne</label>
+    <label class="check"><input type="checkbox" name="offline_scan_allowed" value="1" {% if event.offline_scan_allowed %}checked{% endif %}> Contrôle hors connexion autorisé</label>
+    <label class="wide">Description<textarea name="description" rows="3">{{ event.description }}</textarea></label>
+    <button>Enregistrer</button>
+  </form>
+</details>
+{% endif %}
+
+<div class="pagehead">
+  <h2>Billets</h2>
+  <div class="inline">
+    <form method="get" class="inline"><input name="q" value="{{ q }}" placeholder="N° ou titulaire"><button class="secondary">Rechercher</button></form>
+    <a class="button secondary" href="{{ url_for('admin.history', event_id=event.id) }}">Journal des contrôles</a>
+    <a class="button secondary" href="{{ url_for('admin.export_tickets', event_id=event.id) }}">Export CSV</a>
+    {% if u.can('sales.view') %}<a class="button secondary" href="{{ url_for('admin.sales', event=event.id) }}">Commandes</a>{% endif %}
+  </div>
+</div>
+<div class="card tablewrap"><table>
+  <thead><tr><th>Numéro</th><th>Catégorie</th><th>Titulaire</th><th>Origine</th><th>Statut</th><th>Entrée</th><th></th></tr></thead>
+  <tbody>
+  {% for t in tickets %}
+    <tr><td>{{ t.ticket_no }}</td><td>{{ t.category.name if t.category else '—' }}</td><td>{{ t.holder or '—' }}</td>
+      <td>{% if t.order %}<a href="{{ url_for('admin.order_detail', order_id=t.order_id) }}">{{ t.order.ref }}</a>{% else %}Guichet{% endif %}</td>
+      <td><span class="pill {{ t.status }}">{{ {'valid':'Valide','used':'Utilisé','cancelled':'Annulé'}[t.status] }}</span></td>
+      <td>{{ t.used_at|dt('%d/%m %H:%M:%S') if t.used_at else '—' }}</td>
+      <td class="inline">
+        {% if u.can('tickets.generate') %}<a class="button secondary small" href="{{ url_for('admin.print_tickets', event_id=event.id, id=t.id) }}">Réimprimer</a>{% endif %}
+        {% if u.can('tickets.cancel') and t.status == 'valid' %}<form method="post" action="{{ url_for('admin.cancel_ticket', ticket_id=t.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger small" data-confirm="Annuler le billet {{ t.ticket_no }} ?">Annuler</button></form>{% endif %}
+      </td></tr>
+  {% else %}<tr><td colspan="7">Aucun billet.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+<p class="muted small">100 derniers billets affichés. Utilisez la recherche ou l'export pour la liste complète.</p>
+{% endblock %}

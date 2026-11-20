@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Événements de la plateforme{% endblock %}
+{% block content %}
+<div class="eyebrow">CONSOLE PLATEFORME</div>
+<h1>Événements publiés</h1>
+<p class="muted">Les événements « À la une » apparaissent en tête de la billetterie publique et du widget intégré.</p>
+<div class="card tablewrap"><table>
+  <thead><tr><th></th><th>Événement</th><th>Organisateur</th><th>Date</th><th>Genre</th><th>À la une</th><th></th></tr></thead>
+  <tbody>
+  {% for e in events %}
+    <tr><td>{% if e.poster %}<img class="thumb" src="{{ url_for('media.poster', name=e.poster) }}" alt="">{% endif %}</td>
+      <td><a href="{{ url_for('shop.event_page', org_slug=e.organization.slug, event_slug=e.slug) }}">{{ e.name }}</a></td>
+      <td>{{ e.organization.name }}</td><td>{{ e.starts_at|dt }}</td><td>{{ e.genre_label }}</td>
+      <td>{% if e.featured %}<span class="pill published">Oui</span>{% else %}—{% endif %}</td>
+      <td><form method="post" action="{{ url_for('platform.toggle_featured', event_id=e.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="secondary small">{{ 'Retirer de la une' if e.featured else 'Mettre à la une' }}</button></form></td></tr>
+  {% else %}<tr><td colspan="7">Aucun événement publié.</td></tr>{% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

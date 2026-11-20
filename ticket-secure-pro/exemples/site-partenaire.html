@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exemple : billetterie intégrée à un site existant</title>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #faf7f2; color: #222; }
+    header { background: #2b1d3a; color: #fff; padding: 18px 5vw; display: flex; justify-content: space-between; align-items: center; }
+    header a { color: #f3c969; text-decoration: none; margin-left: 18px; font-size: 14px; }
+    main { max-width: 1120px; margin: 32px auto; padding: 0 20px; }
+    h1 { font-size: 32px; margin: 0 0 8px; }
+    .intro { color: #555; max-width: 680px; }
+    footer { text-align: center; color: #888; font-size: 13px; padding: 30px; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>MON SITE · Agenda culturel</strong>
+    <nav><a href="#">Accueil</a><a href="#">Agenda</a><a href="#">Contact</a></nav>
+  </header>
+  <main>
+    <h1>Nos prochains événements</h1>
+    <p class="intro">Réservez vos places directement ici et payez par Wave, Orange Money ou carte bancaire.
+      Vos billets s'affichent sur cette page après le paiement et vous sont aussi envoyés par e-mail.</p>
+
+    <!-- ===== Billetterie : les deux lignes à copier dans votre page ===== -->
+    <script src="https://VOTRE-PLATEFORME/static/embed/billetterie.js" defer></script>
+    <tsp-billetterie organisateur="VOTRE-ORGANISATION" couleur="#e4572e" titre="Billetterie"></tsp-billetterie>
+    <!-- =================================================================== -->
+  </main>
+  <footer>Page de démonstration : remplacez VOTRE-PLATEFORME et VOTRE-ORGANISATION par vos valeurs
+    (menu « Intégration » de votre espace organisateur).</footer>
+</body>
+</html>
